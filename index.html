@@ -156,8 +156,9 @@ main{padding:28px 34px}
 .cal-sync.loading{color:#0a6cc2}.cal-sync.loading .dot{background:#0078d4;animation:calpulse 1s ease-in-out infinite}
 @keyframes calpulse{0%,100%{opacity:.35}50%{opacity:1}}
 #taskBody.done-collapsed .done-row{display:none}
-.done-sep td{background:var(--bg);padding:9px 14px!important;border-top:1px solid var(--line)}
-.done-toggle{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink-soft);user-select:none}
+.done-sep td{background:var(--bg);padding:16px 14px 9px!important;border-top:2px solid var(--line)}
+.done-toggle{cursor:pointer;font-size:13px;font-weight:700;color:var(--ink-soft);user-select:none;display:inline-block;padding:2px 4px;border-radius:6px}
+.done-toggle:hover{color:var(--accent);background:var(--accent-soft)}
 .done-toggle .ar{display:inline-block;width:14px}
 tr.done-row td{opacity:.6}
 .restore-btn{margin-left:6px;font-size:11px;font-weight:700;color:#2563eb;background:#eef4ff;border:1px solid #cfe0ff;border-radius:5px;padding:2px 8px;cursor:pointer;vertical-align:middle}
@@ -359,6 +360,10 @@ td .due.soon{color:var(--danger)}
 .modal,.umodal{position:relative}
 .modal-x{position:absolute;top:11px;right:13px;width:30px;height:30px;border:none;background:transparent;font-size:17px;color:var(--ink-soft);cursor:pointer;border-radius:8px;line-height:1;z-index:5}
 .modal-x:hover{background:var(--bg);color:var(--ink)}
+.mhead{padding-right:42px}
+.dash-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+@media(max-width:900px){.dash-2col{grid-template-columns:1fr}}
+.proj-del{color:#e2574c!important}
 .audit{font-size:11px;color:var(--ink-soft);margin-top:14px;padding-top:13px;border-top:1px solid var(--line-soft)}
 .audit .arow{display:flex;justify-content:space-between;margin-bottom:3px}
 .audit .arow:last-child{margin-bottom:0}
@@ -454,6 +459,7 @@ td .due.soon{color:var(--danger)}
           <div class="card-title">① 긴급 리스트</div>
           <div id="dashUrgent"></div>
         </div>
+        <div class="dash-2col">
         <div class="detail-block">
           <div class="card-title">② 프로젝트별 할일 수</div>
           <div id="dashProj"></div>
@@ -461,6 +467,7 @@ td .due.soon{color:var(--danger)}
         <div class="detail-block">
           <div class="card-title">③ 담당자별 업무량<span class="note">완료 제외 · 미완료 task 기준</span></div>
           <div id="dashOwner"></div>
+        </div>
         </div>
       </section>
       <!-- ===== 일정관리 ===== -->
@@ -713,7 +720,7 @@ td .due.soon{color:var(--danger)}
             <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;line-height:1.6;padding:10px;background:var(--bg);border-radius:8px">누구나 태스크를 만들고 수정할 수 있으나, 삭제는 관리자 확인이 필요합니다.</div>
           </div>
           <!-- 디자인종류 -->
-          <div class="mgr-card" style="grid-column:1/-1">
+          <div class="mgr-card">
             <h3>디자인종류</h3><div class="d">대분류 · 소분류 · 수정/삭제 가능</div>
             <div class="mgr-item"><span class="dtype dt-logo">로고/키비주얼</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','로고/키비주얼')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('로고/키비주얼')" title="삭제">🗑</button></div></div>
             <div class="mgr-item"><span class="dtype dt-print">인쇄물</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','인쇄물')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('인쇄물')" title="삭제">🗑</button></div></div>
@@ -727,7 +734,7 @@ td .due.soon{color:var(--danger)}
             <div class="mgr-item"><span class="dtype dt-etc">기타</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','기타')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('기타')" title="삭제">🗑</button></div></div>
             <button class="mgr-add" onclick="mgrAdd('디자인종류')">＋ 디자인종류 추가</button>
           </div>
-          <div class="mgr-card" style="grid-column:1/-1">
+          <div class="mgr-card">
             <h3>프로젝트(행사)</h3>
             <div class="d">순서 변경 · 사이드바 표시/숨김 관리</div>
             <div id="projList">
@@ -1155,6 +1162,15 @@ document.addEventListener('DOMContentLoaded',function(){
   var btnG=document.getElementById('btnGuestLogin');
   if(btnG) btnG.addEventListener('click', guestLogin);
 
+  // 담당자 칩 클릭 → 해당 캘린더 필터 재렌더 (inline 토글 후 실행)
+  document.querySelectorAll('.chip[data-grp]').forEach(function(c){
+    c.addEventListener('click', function(){
+      var g=this.getAttribute('data-grp')||'';
+      if(g.indexOf('cal-')===0) renderCalViews('cal');
+      else if(g.indexOf('pj-')===0) renderCalViews('pcal');
+    });
+  });
+
   // 삭제·등록·저장은 각 버튼의 inline onclick으로 1회만 실행 (addEventListener 중복 제거 → 이중 생성 방지)
   // 모달 배경 클릭 닫기도 inline onclick으로 처리됨
 });
@@ -1304,7 +1320,7 @@ function renderDashboard(){
   const projOrder=['일잘러2026','1인가구2026','오티즘2026','제안서','PMD','기타'];
   const projColors={'일잘러2026':'#7baaf7','1인가구2026':'#45c4a0','오티즘2026':'#e8a030','제안서':'#f07898','PMD':'#b08cf5','기타':'#8ca8be'};
   const pcnt={}; active.forEach(t=>{pcnt[t.p]=(pcnt[t.p]||0)+1;});
-  const projs=projOrder.slice(); Object.keys(pcnt).forEach(p=>{if(!projs.includes(p))projs.push(p);});
+  const projs=projOrder.slice(); Object.keys(pcnt).forEach(p=>{if(p&&!projs.includes(p))projs.push(p);});
   const maxP=Math.max(1,...projs.map(p=>pcnt[p]||0));
   const pj=document.getElementById('dashProj');
   if(pj) pj.innerHTML=projs.map(p=>{const c=pcnt[p]||0; return '<div class="bar-row"><div class="nm">'+p+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(6,Math.round(c/maxP*100))+'%;background:'+(projColors[p]||'#8ca8be')+'">'+c+'</div></div></div>';}).join('');
@@ -1347,7 +1363,10 @@ function calShift(prefix, dir){
 function renderCalViews(prefix, proj){
   if(arguments.length>=2) calCurProj[prefix]=proj;
   proj=calCurProj[prefix];
-  const tasks=(TASKS||[]).filter(t=>!proj||t.p===proj);
+  const cg=prefix==='cal'?'cal':'pj';
+  const offDes=new Set([...document.querySelectorAll('.chip[data-grp="'+cg+'-des"].off')].map(c=>c.textContent.trim()));
+  const offPmd=new Set([...document.querySelectorAll('.chip[data-grp="'+cg+'-pmd"].off')].map(c=>c.textContent.trim()));
+  const tasks=(TASKS||[]).filter(t=>(!proj||t.p===proj)&&!offDes.has((t.des||'').split(' (')[0])&&!offPmd.has(t.pmd));
   const byDay={}; tasks.forEach(t=>{ if(t.due){(byDay[t.due]=byDay[t.due]||[]).push(t);} });
   const f=calFocus[prefix], todayS=_ymd(new Date());
   const evHtml=(t)=>'<div class="ev" style="background:'+getDesColor(t.des)+';cursor:pointer" title="'+t.n+'" onclick="openDetail('+TASKS.indexOf(t)+')">'+t.n+'</div>';
@@ -1415,6 +1434,7 @@ function toggleAll(btn,grp){
   const anyOn=[...chips].some(c=>!c.classList.contains('off'));
   chips.forEach(c=>c.classList.toggle('off',anyOn));
   btn.classList.toggle('off',anyOn);
+  if(grp.indexOf('cal-')===0) renderCalViews('cal'); else if(grp.indexOf('pj-')===0) renderCalViews('pcal');
 }
 function toggleHide(btn,name){
   const on=btn.classList.toggle('on');
@@ -1568,6 +1588,22 @@ function initMgrReorder(){
     act.insertBefore(dn, act.firstChild); act.insertBefore(up, act.firstChild);
   });
 }
+function initProjDelete(){
+  document.querySelectorAll('#projList .mp-row').forEach(function(row){
+    if(row.querySelector('.proj-del')) return;
+    var b=document.createElement('button');
+    b.className='mp-toggle proj-del'; b.textContent='🗑'; b.title='삭제';
+    b.addEventListener('click',function(){ deleteProject(this); });
+    row.appendChild(b);
+  });
+}
+function deleteProject(btn){
+  var row=btn.closest('.mp-row'); if(!row) return;
+  var name=row.dataset.pj;
+  if(!confirm('"'+name+'" 프로젝트를 목록·사이드바에서 삭제할까요?\n(이 프로젝트의 태스크 데이터는 그대로 남습니다)')) return;
+  row.remove();
+  document.querySelectorAll('.sub-item').forEach(function(s){ if(s.dataset.pj===name) s.remove(); });
+}
 function mgrEdit(section, item){
   const v = prompt(`[${section}] "${item}" 수정\n새 이름을 입력하세요:`, item);
   if(v && v.trim() && v!==item) alert(`"${item}" → "${v.trim()}" 으로 수정되었습니다.\n(실제 연동 시 DB에 자동 반영)`);
@@ -1583,7 +1619,7 @@ function mgrAdd(section){
 }
 // 페이지 로드 시 기본 프로젝트 렌더링
 window.addEventListener('DOMContentLoaded',async()=>{
-  renderTaskList('일잘러2026');refreshData();initMgrReorder();
+  renderTaskList('일잘러2026');refreshData();initMgrReorder();initProjDelete();
   renderProjCalendar('일잘러2026');
   loadUser();
   await initMSAL(); // Microsoft 로그인 → 자동으로 SharePoint 데이터 로드
