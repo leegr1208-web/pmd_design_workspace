@@ -282,6 +282,12 @@ tr.done-row td{opacity:.6}
 .pj-count{margin-left:auto;font-size:11px;font-weight:600;color:var(--ink-soft);background:var(--bg);min-width:18px;text-align:center;padding:1px 7px;border-radius:10px}
 .chip .chip-count{font-size:10px;font-weight:600;color:var(--ink-soft);background:var(--bg);min-width:14px;text-align:center;padding:0 5px;border-radius:8px;margin-left:3px}
 .chip.off .chip-count{opacity:.45}
+.user-menu{position:absolute;left:0;right:0;bottom:100%;margin-bottom:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:0 8px 24px rgba(0,0,0,.13);z-index:60;display:none}
+.um-name{font-size:14px;font-weight:600}
+.um-mail{font-size:11.5px;color:var(--ink-soft);margin-top:2px;word-break:break-all}
+.um-role{font-size:11.5px;color:var(--accent);font-weight:600;margin-top:2px}
+.um-logout{width:100%;margin-top:11px;padding:9px;border:1px solid var(--line);background:var(--bg);border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;color:#e2574c;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.um-logout:hover{background:#fff1f2;border-color:#fecaca}
 .sub-item.active .pj-count{background:rgba(255,255,255,.25);color:#fff}
 .board-wrap{display:flex;gap:12px;padding:6px 2px 4px;overflow-x:auto}
 .bcol{flex:1;min-width:190px;background:var(--bg);border-radius:12px;padding:10px}
@@ -443,7 +449,7 @@ td .due.soon{color:var(--danger)}
       <button class="snav" data-v="mgr" onclick="go('mgr')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>관리</button>
     </div>
     <div class="side-foot">
-      <div class="user-bar" onclick="openUserPicker()" id="userBar" title="사용자 변경">
+      <div class="user-bar" id="userBar" title="로그인 정보 / 로그아웃">
         <div class="uav" id="userAv" style="background:var(--p-kyuri)">이</div>
         <div class="uinfo">
           <div class="uname" id="userName">사용자 선택</div>
@@ -1183,7 +1189,30 @@ function setUserBarLoggedOut(){
 }
 function onUserBarClick(){
   var authed=(typeof msalApp==='object'&&msalApp&&msalApp.getAllAccounts&&msalApp.getAllAccounts().length>0);
-  if(!authed){ var um=document.getElementById('userModal'); if(um) um.classList.remove('hidden'); }
+  if(!authed){ var um=document.getElementById('userModal'); if(um) um.classList.remove('hidden'); return; }
+  toggleUserMenu();
+}
+function buildUserMenu(){
+  var bar=document.getElementById('userBar'); if(!bar) return null;
+  var acc=(msalApp&&msalApp.getAllAccounts()[0])||{}; var info=CURRENT_USER||{};
+  var m=document.createElement('div'); m.id='userMenu'; m.className='user-menu';
+  m.innerHTML='<div class="um-name">'+((info.name)||acc.name||'')+'</div><div class="um-mail">'+(acc.username||'')+'</div><div class="um-role">'+(info.role||'')+'</div><button class="um-logout" onclick="msalLogout()"><i class="ti ti-logout"></i> 로그아웃</button>';
+  bar.parentNode.style.position='relative'; bar.parentNode.appendChild(m); return m;
+}
+function toggleUserMenu(){
+  var m=document.getElementById('userMenu')||buildUserMenu(); if(!m) return;
+  var show=m.style.display!=='block'; m.style.display=show?'block':'none';
+  if(show) setTimeout(function(){document.addEventListener('click',_closeUserMenuOutside);},0);
+}
+function _closeUserMenuOutside(e){
+  var m=document.getElementById('userMenu'), bar=document.getElementById('userBar');
+  if(m&&!m.contains(e.target)&&bar&&!bar.contains(e.target)){ m.style.display='none'; document.removeEventListener('click',_closeUserMenuOutside); }
+}
+function msalLogout(){
+  try{ localStorage.removeItem('pmd_current_user'); }catch(e){}
+  var m=document.getElementById('userMenu'); if(m) m.style.display='none';
+  if(msalApp){ var a=msalApp.getAllAccounts()[0]; try{ msalApp.logoutRedirect({account:a, postLogoutRedirectUri:window.location.origin}); return; }catch(e){} }
+  location.reload();
 }
 // ===== 모든 버튼을 addEventListener로 바인딩 =====
 document.addEventListener('DOMContentLoaded',function(){
