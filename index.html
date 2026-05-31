@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.1.0/dist/tabler-icons.min.css">
 <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" defer></script>
 <script>
 /* JS 에러 감지기 - 빨간 배너로 표시 */
@@ -52,7 +54,17 @@ window.addEventListener('DOMContentLoaded',function(){
   --shadow:0 1px 3px rgba(26,32,53,.04),0 8px 28px rgba(67,97,238,.07);--side-w:248px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'IBM Plex Sans KR',sans-serif;background:#f3f6fb;color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+body{font-family:'Pretendard','IBM Plex Sans KR',sans-serif;background:#f3f6fb;color:var(--ink);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;letter-spacing:-.01em;line-height:1.55}
+/* 폰트 두께 전반 경량화 (선명도 개선) */
+h1,h2,h3,h4{font-weight:600;letter-spacing:-.02em}
+.card-title{font-weight:600}
+.snav{font-weight:500}.snav.active{font-weight:600}
+.sub-item,.chip,.bar-row .nm,.viewtoggle button,.who-split,.mp-name,.mgr-item{font-weight:500}
+.kpi .l,.card-title .note,.side-brand span{font-weight:500}
+.kpi .n{font-weight:600}.bar-fill{font-weight:600}
+i.ti{vertical-align:-2px;line-height:1}
+.card-title i.ti{color:var(--accent);margin-right:6px;font-size:15px}
+.kpi .l i.ti{margin-right:4px;font-size:13px}
 .layout{display:flex;min-height:100vh}
 aside{width:var(--side-w);background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:40}
 .side-brand{padding:22px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:11px}
@@ -264,6 +276,23 @@ tr.done-row td{opacity:.6}
 .sortsel{display:flex;align-items:center;gap:7px}
 .sortsel label{font-size:11px;font-weight:700;color:var(--ink-soft)}
 .sortsel select{font-family:inherit;font-size:12.5px;font-weight:600;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+.taskview-toggle{display:inline-flex;background:var(--bg);border-radius:9px;padding:3px;gap:2px}
+.taskview-btn{border:none;background:none;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--ink-soft);padding:6px 13px;border-radius:7px;cursor:pointer;transition:.12s}
+.taskview-btn.active{background:var(--surface);color:var(--accent);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.pj-count{margin-left:auto;font-size:11px;font-weight:600;color:var(--ink-soft);background:var(--bg);min-width:18px;text-align:center;padding:1px 7px;border-radius:10px}
+.sub-item.active .pj-count{background:rgba(255,255,255,.25);color:#fff}
+.board-wrap{display:flex;gap:12px;padding:6px 2px 4px;overflow-x:auto}
+.bcol{flex:1;min-width:190px;background:var(--bg);border-radius:12px;padding:10px}
+.bcol-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:2px 3px}
+.bcol-cnt{font-size:12px;font-weight:600;color:var(--ink-soft)}
+.bcol-body{display:flex;flex-direction:column;gap:8px;min-height:40px}
+.bcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px;cursor:pointer;transition:.12s}
+.bcard:hover{box-shadow:0 4px 14px rgba(0,0,0,.07);border-color:var(--accent-mid)}
+.bcard-top{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:7px}
+.bcard-ttl{font-size:13.5px;font-weight:600;line-height:1.3;margin-bottom:8px}
+.bcard-meta{display:flex;justify-content:space-between;align-items:center;font-size:11.5px}
+.bcard-due{color:var(--ink-soft);font-weight:500}
+.bcol-empty{font-size:12px;color:var(--ink-soft);text-align:center;padding:16px 0}
 .tbl-wrap{overflow-x:auto}
 table.tasks{width:100%;border-collapse:collapse;min-width:880px}
 table.tasks th{font-size:11px;font-weight:700;color:var(--ink-soft);text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;background:var(--bg)}
@@ -420,7 +449,7 @@ td .due.soon{color:var(--danger)}
         </div>
         <span class="uedit">✏</span>
       </div>
-      <button class="side-add" onclick="openNew()" style="margin-top:10px">＋ 새 태스크</button>
+      <button class="side-add" onclick="openNew()" style="margin-top:10px"><i class="ti ti-plus"></i> 새 태스크</button>
       <div class="side-tools">
         <div class="side-tools-label">연결된 툴</div>
         <div class="tool-grid">
@@ -456,16 +485,16 @@ td .due.soon{color:var(--danger)}
         <div class="view-head"><div><h2>대시보드</h2><p>긴급 → 프로젝트별 → 담당자별 순</p></div></div>
         <div class="kpi-row" id="dashKpi"></div>
         <div class="detail-block">
-          <div class="card-title">① 긴급 리스트</div>
+          <div class="card-title"><i class="ti ti-flame"></i>긴급 리스트</div>
           <div id="dashUrgent"></div>
         </div>
         <div class="dash-2col">
         <div class="detail-block">
-          <div class="card-title">② 프로젝트별 할일 수</div>
+          <div class="card-title"><i class="ti ti-chart-bar"></i>프로젝트별 할일 수</div>
           <div id="dashProj"></div>
         </div>
         <div class="detail-block">
-          <div class="card-title">③ 담당자별 업무량<span class="note">완료 제외 · 미완료 task 기준</span></div>
+          <div class="card-title"><i class="ti ti-users"></i>담당자별 업무량<span class="note">완료 제외 · 미완료 task 기준</span></div>
           <div id="dashOwner"></div>
         </div>
         </div>
@@ -637,6 +666,7 @@ td .due.soon{color:var(--danger)}
         <div class="plist">
           <div class="plist-head">
             <div><h3>일잘러2026 &middot; 할일 리스트</h3><div class="sub">행사일 2026.05.20 · 전체 9건 · 행 클릭 시 세부보기/수정</div></div>
+            <div class="taskview-toggle"><button class="taskview-btn active" data-v="list" onclick="setTaskView('list')"><i class="ti ti-list"></i> 목록</button><button class="taskview-btn" data-v="board" onclick="setTaskView('board')"><i class="ti ti-layout-grid"></i> 보드</button></div>
             <div class="sortsel"><label>정렬</label>
               <select onchange="sortList(this.value)">
                 <option value="due">마감일순</option>
@@ -660,11 +690,12 @@ td .due.soon{color:var(--danger)}
               </tbody>
             </table>
           </div>
+          <div class="board-wrap" id="taskBoard" style="display:none"></div>
         </div>
       </section>
       <!-- ===== 관리 ===== -->
       <section class="view" id="mgr">
-        <div class="view-head" style="display:flex;justify-content:space-between;align-items:center"><div><h2>관리</h2><p>담당자 · 제출처 · 디자인종류 · 권한 · Outlook 자동화</p></div><button class="btn btn-save" onclick="saveMgrLayout()" style="flex:0 0 auto">💾 순서·삭제 저장</button></div>
+        <div class="view-head" style="display:flex;justify-content:space-between;align-items:center"><div><h2>관리</h2><p>담당자 · 제출처 · 디자인종류 · 권한 · Outlook 자동화</p></div><button class="btn btn-save" onclick="saveMgrLayout()" style="flex:0 0 auto"><i class="ti ti-device-floppy"></i> 순서·삭제 저장</button></div>
         <!-- Outlook 자동화 안내 -->
         <div class="automate-card">
           <h4><img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" style="width:16px;height:16px"> Outlook [PMD] 디자인캘린더 자동 연동 <span style="font-size:11px;color:#1a7f4b;background:#e7f6ee;padding:2px 8px;border-radius:5px;margin-left:4px">사용 중</span></h4>
@@ -790,7 +821,7 @@ td .due.soon{color:var(--danger)}
 </div>
 <!-- 사용자 선택 모달 -->
 <div class="umodal-bg" id="userModal">
-  <div class="umodal" style="max-width:360px;text-align:center"><button class="modal-x" onclick="document.getElementById('userModal').classList.add('hidden')" title="닫기">✕</button>
+  <div class="umodal" style="max-width:360px;text-align:center"><button class="modal-x" onclick="document.getElementById('userModal').classList.add('hidden')" title="닫기"><i class="ti ti-x"></i></button>
     <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;margin:0 auto 16px;font-size:26px">🔐</div>
     <h3 style="margin-bottom:6px">PMD 디자인 워크스페이스</h3>
     <p style="margin-bottom:24px">Microsoft 계정으로 로그인하면<br>태스크 추가·수정이 가능합니다.</p>
@@ -802,10 +833,10 @@ td .due.soon{color:var(--danger)}
 </div>
 <!-- 세부 보기 / 수정 모달 -->
 <div class="modal-bg" id="detailModal" onclick="if(event.target===this)closeDetail()">
-  <div class="modal"><button class="modal-x" onclick="closeDetail()" title="닫기">✕</button>
+  <div class="modal"><button class="modal-x" onclick="closeDetail()" title="닫기"><i class="ti ti-x"></i></button>
     <div class="mhead">
       <div><h3 id="dTitle">메인 키비주얼</h3><p class="mhint" id="dProj">일잘러2026 · 세부보기 / 수정</p></div>
-      <button class="del-btn" onclick="tryDelete()">삭제</button>
+      <button class="del-btn" onclick="tryDelete()"><i class="ti ti-trash"></i> 삭제</button>
     </div>
     <div class="field"><label>내용</label><input type="text" id="dName" value="메인 키비주얼"></div>
     <div class="field-grid">
@@ -844,7 +875,7 @@ td .due.soon{color:var(--danger)}
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeDetail()">닫기</button>
       
-      <button class="btn btn-save" onclick="saveDetail()">수정 저장</button>
+      <button class="btn btn-save" onclick="saveDetail()"><i class="ti ti-device-floppy"></i> 수정 저장</button>
     </div>
     <div class="audit" id="dAudit">
       <div class="arow"><span>작성자 · 김희종</span><span>작성일 · 2026.05.10</span></div>
@@ -854,7 +885,7 @@ td .due.soon{color:var(--danger)}
 </div>
 <!-- 새 태스크 모달 -->
 <div class="modal-bg" id="newModal" onclick="if(event.target===this)closeNew()">
-  <div class="modal"><button class="modal-x" onclick="closeNew()" title="닫기">✕</button>
+  <div class="modal"><button class="modal-x" onclick="closeNew()" title="닫기"><i class="ti ti-x"></i></button>
     <h3>새 태스크</h3>
     <p class="mhint">필수 항목만 채우면 바로 등록됩니다</p>
     <div class="req-section">
@@ -897,7 +928,7 @@ td .due.soon{color:var(--danger)}
     <div class="field"><label>시안 링크 <span class="opt">선택 · OneDrive</span></label><input type="text" placeholder="OneDrive 파일 링크 붙여넣기"></div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeNew()">취소</button>
-      <button class="btn btn-save" onclick="registerNewTask()">등록</button>
+      <button class="btn btn-save" onclick="registerNewTask()"><i class="ti ti-check"></i> 등록</button>
     </div>
     <div class="audit"><div class="arow" id="newAuditRow"><span id="newAuditMaker">작성자 · (로그인 필요)</span><span id="newAuditDate"></span></div></div>
   </div>
@@ -1253,7 +1284,39 @@ function getDesColor(des){
   if(des.includes('플로우'))return'var(--c-flow)';
   return'var(--ink-soft)';
 }
+var taskViewMode='list';
+function setTaskView(m){
+  taskViewMode=m;
+  var tw=document.querySelector('.plist .tbl-wrap'), bd=document.getElementById('taskBoard'), ss=document.querySelector('.plist .sortsel');
+  if(tw) tw.style.display=(m==='list')?'':'none';
+  if(bd) bd.style.display=(m==='board')?'':'none';
+  if(ss) ss.style.visibility=(m==='list')?'':'hidden';
+  document.querySelectorAll('.taskview-btn').forEach(function(b){b.classList.toggle('active', b.dataset.v===m);});
+}
+function renderBoard(proj){
+  var board=document.getElementById('taskBoard'); if(!board) return;
+  var filtered=(TASKS||[]).map(function(t,i){return Object.assign({},t,{idx:i});}).filter(function(t){return t.p===proj;});
+  var cols=['대기','진행','검수','완료'];
+  var progMap={대기:'st-wait',진행:'st-prog',검수:'st-review',완료:'st-done'};
+  var urgMap={긴급:'urgent',높음:'high',보통:'mid',낮음:'low'};
+  board.innerHTML=cols.map(function(c){
+    var items=filtered.filter(function(t){return (t.prog||'대기')===c;});
+    var cards=items.map(function(t){
+      return '<div class="bcard" onclick="openDetail('+t.idx+')"><div class="bcard-top"><span class="dtype '+getTypeClass(t.type||'')+'">'+(t.type||'-')+'</span><span class="urg '+(urgMap[t.urg]||'mid')+'">'+(t.urg||'')+'</span></div><div class="bcard-ttl">'+t.n+'</div><div class="bcard-meta"><span class="who"><span class="av" style="background:'+getDesColor(t.des)+'"></span>'+((t.des||'').split(' (')[0])+'</span><span class="bcard-due">'+(t.due?formatDate(t.due):'')+'</span></div></div>';
+    }).join('');
+    return '<div class="bcol"><div class="bcol-head"><span class="prog '+progMap[c]+'">'+c+'</span><span class="bcol-cnt">'+items.length+'</span></div><div class="bcol-body">'+(cards||'<div class="bcol-empty">없음</div>')+'</div></div>';
+  }).join('');
+}
+function updateProjCounts(){
+  var cnt={}; (TASKS||[]).forEach(function(t){ cnt[t.p]=(cnt[t.p]||0)+1; });
+  document.querySelectorAll('#projSubNav .sub-item[data-pj]').forEach(function(s){
+    var b=s.querySelector('.pj-count');
+    if(!b){ b=document.createElement('span'); b.className='pj-count'; s.appendChild(b); }
+    b.textContent=cnt[s.dataset.pj]||0;
+  });
+}
 function renderTaskList(proj){
+  if(typeof renderBoard==='function') renderBoard(proj);
   const filtered=TASKS.map((t,i)=>({...t,idx:i})).filter(t=>t.p===proj);
   const tbody=document.getElementById('taskBody');
   const progMap={대기:'st-wait',진행:'st-prog',검수:'st-review',완료:'st-done'};
@@ -1312,7 +1375,7 @@ function renderDashboard(){
   let dueToday=0,dueWeek=0,urgent=0;
   active.forEach(t=>{ if(t.due===todayStr)dueToday++; const x=new Date(t.due+'T00:00:00'); if(!isNaN(x)&&x>=t0&&x<=t7)dueWeek++; if(t.urg==='긴급')urgent++; });
   const kpi=document.getElementById('dashKpi');
-  if(kpi) kpi.innerHTML='<div class="kpi danger"><div class="n">'+dueToday+'</div><div class="l">오늘 마감</div></div><div class="kpi warn"><div class="n">'+dueWeek+'</div><div class="l">이번 주 마감</div></div><div class="kpi"><div class="n" style="color:var(--danger)">'+urgent+'</div><div class="l">긴급</div></div>';
+  if(kpi) kpi.innerHTML='<div class="kpi danger"><div class="n">'+dueToday+'</div><div class="l"><i class="ti ti-calendar-event"></i>오늘 마감</div></div><div class="kpi warn"><div class="n">'+dueWeek+'</div><div class="l"><i class="ti ti-clock"></i>이번 주 마감</div></div><div class="kpi"><div class="n" style="color:var(--danger)">'+urgent+'</div><div class="l"><i class="ti ti-alert-triangle"></i>긴급</div></div>';
   const urg=document.getElementById('dashUrgent');
   if(urg){ const list=tasks.map((t,i)=>({...t,idx:i})).filter(t=>t.urg==='긴급'&&t.prog!=='완료');
     urg.innerHTML=list.length? list.map(t=>'<div class="task" style="box-shadow:none;margin-bottom:8px;cursor:pointer" onclick="openDetail('+t.idx+')"><div class="left" style="background:'+getDesColor(t.des)+'"></div><div class="body"><div class="title">'+t.p+' '+t.n+'</div><div class="who-split"><span class="seg des"><span class="tag">디자인</span><span class="av" style="background:'+getDesColor(t.des)+'"></span>'+t.des.split(' (')[0]+'</span><span class="seg pmd"><span class="tag">PMD</span><span class="av" style="background:var(--p-blue)"></span>'+t.pmd+'</span></div></div><span class="urgent-tag">긴급</span></div>').join(''):'<div style="color:var(--ink-soft);font-size:13px;padding:6px 2px">긴급 태스크가 없습니다</div>';
@@ -1404,6 +1467,7 @@ function renderCalViews(prefix, proj){
 function refreshData(){
   if(typeof renderDashboard==='function') renderDashboard();
   if(typeof renderCalViews==='function') renderCalViews('cal', null);
+  if(typeof updateProjCounts==='function') updateProjCounts();
   const ap=document.querySelector('.sub-item.active');
   if(ap && typeof renderCalViews==='function') renderCalViews('pcal', ap.dataset.pj);
 }
@@ -1748,7 +1812,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
     <div class="field"><label>시안 링크 <span class="opt">선택 · OneDrive</span></label><input type="text" placeholder="OneDrive 파일 링크 붙여넣기"></div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeNew()">취소</button>
-      <button class="btn btn-save" onclick="registerNewTask()">등록</button>
+      <button class="btn btn-save" onclick="registerNewTask()"><i class="ti ti-check"></i> 등록</button>
     </div>
     <div class="audit"><div class="arow" id="newAuditRow"><span id="newAuditMaker">작성자 · (로그인 필요)</span><span id="newAuditDate"></span></div></div>
   </div>
