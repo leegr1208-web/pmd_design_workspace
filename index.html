@@ -1122,18 +1122,26 @@ function loadUser(){
     const s=localStorage.getItem('pmd_current_user');
     if(s) CURRENT_USER=JSON.parse(s);
   }catch(e){}
-  if(CURRENT_USER){
-    updateUserBar(CURRENT_USER);
-    document.getElementById('userModal').classList.add('hidden'); // 이미 로그인 → 모달 숨김
-    document.getElementById('mainLayout').style.display='flex';   // 메인 화면 표시 (빈 화면 방지)
-  }
-  // 로그인 안 됐으면 모달은 CSS 기본값으로 이미 보임
+  // 인증 상태는 MSAL이 결정 — 우선 '로그인 필요'로 두고, 인증되면 onMSALLogin이 이름으로 덮어씀
+  setUserBarLoggedOut();
+}
+function setUserBarLoggedOut(){
+  var n=document.getElementById('userName'), r=document.getElementById('userRole'), a=document.getElementById('userAv');
+  if(n) n.textContent='로그인 필요';
+  if(r) r.textContent='클릭하여 로그인';
+  if(a){ a.textContent='?'; a.style.background='#b9c2cf'; }
+  var ml=document.getElementById('mainLayout'); if(ml) ml.style.display='none';
+  var um=document.getElementById('userModal'); if(um) um.classList.remove('hidden');
+}
+function onUserBarClick(){
+  var authed=(typeof msalApp==='object'&&msalApp&&msalApp.getAllAccounts&&msalApp.getAllAccounts().length>0);
+  if(!authed){ var um=document.getElementById('userModal'); if(um) um.classList.remove('hidden'); }
 }
 // ===== 모든 버튼을 addEventListener로 바인딩 =====
 document.addEventListener('DOMContentLoaded',function(){
   // 사용자바 클릭
   var ub=document.getElementById('userBar');
-  if(ub) ub.addEventListener('click', openUserPicker);
+  if(ub) ub.addEventListener('click', onUserBarClick);
 
   // Microsoft 로그인 버튼
   var btnMs=document.getElementById('btnMsalLogin');
