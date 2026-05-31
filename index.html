@@ -925,7 +925,7 @@ async function initMSAL(){
   if(!window.msal){console.warn('MSAL not loaded');return;}
   msalApp=new msal.PublicClientApplication({
     auth:{clientId:MSC.clientId,authority:`https://login.microsoftonline.com/${MSC.tenantId}`,redirectUri:window.location.origin},
-    cache:{cacheLocation:'sessionStorage'}
+    cache:{cacheLocation:'localStorage'}
   });
   await msalApp.initialize();
   try{
