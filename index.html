@@ -356,6 +356,9 @@ td .due.soon{color:var(--danger)}
 .btn-cancel{background:var(--bg);color:var(--ink-soft);border:1px solid var(--line)}
 .btn-save{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(91,110,225,.26)}
 .btn-save:hover{background:var(--accent-deep)}
+.modal,.umodal{position:relative}
+.modal-x{position:absolute;top:11px;right:13px;width:30px;height:30px;border:none;background:transparent;font-size:17px;color:var(--ink-soft);cursor:pointer;border-radius:8px;line-height:1;z-index:5}
+.modal-x:hover{background:var(--bg);color:var(--ink)}
 .audit{font-size:11px;color:var(--ink-soft);margin-top:14px;padding-top:13px;border-top:1px solid var(--line-soft)}
 .audit .arow{display:flex;justify-content:space-between;margin-bottom:3px}
 .audit .arow:last-child{margin-bottom:0}
@@ -780,7 +783,7 @@ td .due.soon{color:var(--danger)}
 </div>
 <!-- 사용자 선택 모달 -->
 <div class="umodal-bg" id="userModal">
-  <div class="umodal" style="max-width:360px;text-align:center">
+  <div class="umodal" style="max-width:360px;text-align:center"><button class="modal-x" onclick="document.getElementById('userModal').classList.add('hidden')" title="닫기">✕</button>
     <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;margin:0 auto 16px;font-size:26px">🔐</div>
     <h3 style="margin-bottom:6px">PMD 디자인 워크스페이스</h3>
     <p style="margin-bottom:24px">Microsoft 계정으로 로그인하면<br>태스크 추가·수정이 가능합니다.</p>
@@ -792,7 +795,7 @@ td .due.soon{color:var(--danger)}
 </div>
 <!-- 세부 보기 / 수정 모달 -->
 <div class="modal-bg" id="detailModal" onclick="if(event.target===this)closeDetail()">
-  <div class="modal">
+  <div class="modal"><button class="modal-x" onclick="closeDetail()" title="닫기">✕</button>
     <div class="mhead">
       <div><h3 id="dTitle">메인 키비주얼</h3><p class="mhint" id="dProj">일잘러2026 · 세부보기 / 수정</p></div>
       <button class="del-btn" onclick="tryDelete()">삭제</button>
@@ -844,7 +847,7 @@ td .due.soon{color:var(--danger)}
 </div>
 <!-- 새 태스크 모달 -->
 <div class="modal-bg" id="newModal" onclick="if(event.target===this)closeNew()">
-  <div class="modal">
+  <div class="modal"><button class="modal-x" onclick="closeNew()" title="닫기">✕</button>
     <h3>새 태스크</h3>
     <p class="mhint">필수 항목만 채우면 바로 등록됩니다</p>
     <div class="req-section">
@@ -1095,7 +1098,8 @@ async function registerNewTask(){
   const now=new Date();
   const me=CURRENT_USER?CURRENT_USER.name:'(미설정)';
   const nowStr=now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0');
-  const t={n:name,p:sels[0]?.value||'기타',draft:dates[0]?.value||'',due:dates[1]?.value||'',type:sels[2]?.value||'',des:sels[1]?.value||'',pmd:sels[3]?.value||'',dest:sels[4]?.value||'',urg:sels[5]?.value||'보통',prog:'대기',made:me,madeAt:nowStr};
+  const cv=s=>{const v=(s&&s.value)||''; return v==='—'?'':v;};
+  const t={n:name,p:sels[0]?.value||'기타',draft:dates[0]?.value||'',due:dates[1]?.value||'',type:cv(sels[3]),des:sels[1]?.value||'',pmd:cv(sels[2]),dest:cv(sels[4]),urg:sels[5]?.value||'보통',prog:'대기',made:me,madeAt:nowStr};
   TASKS.push(t);
   closeNew();
   const ap=document.querySelector('.sub-item.active');
@@ -1151,23 +1155,8 @@ document.addEventListener('DOMContentLoaded',function(){
   var btnG=document.getElementById('btnGuestLogin');
   if(btnG) btnG.addEventListener('click', guestLogin);
 
-  // 삭제 버튼
-  var delBtn=document.querySelector('.del-btn');
-  if(delBtn) delBtn.addEventListener('click', tryDelete);
-
-  // 새 태스크 등록 버튼
-  document.querySelectorAll('.btn-save').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      if(this.closest('#detailModal')) saveDetail();
-      else if(this.closest('#newModal')) registerNewTask();
-    });
-  });
-
-  // 모달 배경 클릭으로 닫기
-  var dm=document.getElementById('detailModal');
-  if(dm) dm.addEventListener('click',function(e){if(e.target===this)closeDetail();});
-  var nm=document.getElementById('newModal');
-  if(nm) nm.addEventListener('click',function(e){if(e.target===this)closeNew();});
+  // 삭제·등록·저장은 각 버튼의 inline onclick으로 1회만 실행 (addEventListener 중복 제거 → 이중 생성 방지)
+  // 모달 배경 클릭 닫기도 inline onclick으로 처리됨
 });
 function openUserPicker(){
   // 현재 선택 표시
