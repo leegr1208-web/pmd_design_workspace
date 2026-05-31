@@ -1756,22 +1756,60 @@ function deleteProject(btn){
   row.remove();
   document.querySelectorAll('.sub-item').forEach(function(s){ if(s.dataset.pj===name) s.remove(); });
 }
-function mgrEdit(section, item){
-  const v = prompt(`[${section}] "${item}" 수정\n새 이름을 입력하세요:`, item);
-  if(v && v.trim() && v!==item) alert(`"${item}" → "${v.trim()}" 으로 수정되었습니다.\n(실제 연동 시 DB에 자동 반영)`);
+function _mgrName(it){ var dt=it.querySelector('.dtype'); if(dt) return dt.textContent.trim(); return [].slice.call(it.childNodes).filter(function(n){return n.nodeType===3;}).map(function(n){return n.textContent;}).join('').trim(); }
+function _renameMgr(oldName,newName){
+  document.querySelectorAll('.mgr-item').forEach(function(it){
+    if(_mgrName(it)!==oldName) return;
+    var dt=it.querySelector('.dtype');
+    if(dt){ dt.textContent=newName; }
+    else { [].slice.call(it.childNodes).forEach(function(n){ if(n.nodeType===3 && n.textContent.trim()===oldName) n.textContent=newName; }); }
+    it.querySelectorAll('button[onclick]').forEach(function(b){ b.setAttribute('onclick', b.getAttribute('onclick').split("'"+oldName+"'").join("'"+newName+"'")); });
+  });
+  document.querySelectorAll('select option').forEach(function(o){ if(o.textContent.trim()===oldName) o.textContent=newName; });
+  if(typeof refreshData==='function') refreshData();
+}
+function _removeMgr(name){
+  document.querySelectorAll('.mgr-item').forEach(function(it){ if(_mgrName(it)===name){ var nx=it.nextElementSibling; if(nx&&nx.classList&&nx.classList.contains('sub-items-wrap')) nx.remove(); it.remove(); } });
+  document.querySelectorAll('select option').forEach(function(o){ if(o.textContent.trim()===name) o.remove(); });
+}
+function _addMgr(section,name){
+  if(section.indexOf('소분류')>-1){
+    var cat=section.replace('소분류','').trim(); var wrap=null;
+    document.querySelectorAll('.mgr-item').forEach(function(it){ if(_mgrName(it)===cat){ var nx=it.nextElementSibling; if(nx&&nx.classList&&nx.classList.contains('sub-items-wrap')) wrap=nx; } });
+    if(wrap){ var chip=document.createElement('span'); chip.className='sub-chip'; chip.innerHTML=name+'<span class="sub-del">x</span>'; var addc=wrap.querySelector('.sub-chip[onclick]'); if(addc) wrap.insertBefore(chip,addc); else wrap.appendChild(chip); }
+    return;
+  }
+  var card=null;
+  document.querySelectorAll('.mgr-card').forEach(function(c){ var h=c.querySelector('h3'); if(h&&h.textContent.trim()===section) card=c; });
+  if(!card) return;
+  var it=document.createElement('div'); it.className='mgr-item';
+  it.innerHTML='<span class="sw" style="background:var(--p-blue)"></span>'+name+'<div class="mgr-actions"></div>';
+  var act=it.querySelector('.mgr-actions');
+  var eb=document.createElement('button'); eb.className='mgr-icon-btn'; eb.title='수정'; eb.textContent='✏'; eb.onclick=function(){ mgrEdit(section,_mgrName(it)); };
+  var db=document.createElement('button'); db.className='mgr-icon-btn del'; db.title='삭제'; db.textContent='🗑'; db.onclick=function(){ mgrDel(_mgrName(it)); };
+  act.appendChild(eb); act.appendChild(db);
+  var addBtn=card.querySelector('.mgr-add'); if(addBtn) card.insertBefore(it,addBtn); else card.appendChild(it);
+  if(typeof initMgrReorder==='function') initMgrReorder();
+}
+function _mgrOps(){ try{return JSON.parse(localStorage.getItem('pmd_mgr_ops')||'[]');}catch(e){return [];} }
+function _pushOp(op){ var a=_mgrOps(); a.push(op); try{localStorage.setItem('pmd_mgr_ops',JSON.stringify(a));}catch(e){} }
+function applyMgrOps(){ _mgrOps().forEach(function(o){ if(o.op==='rename') _renameMgr(o.from,o.to); else if(o.op==='del') _removeMgr(o.name); else if(o.op==='add') _addMgr(o.section,o.name); }); }
+function mgrEdit(section,item){
+  var v=prompt('['+section+'] "'+item+'" 수정\n새 이름을 입력하세요:', item);
+  if(!(v&&v.trim()&&v.trim()!==item)) return;
+  var nv=v.trim(); _renameMgr(item,nv); _pushOp({op:'rename',from:item,to:nv});
 }
 function mgrDel(item){
-  if(confirm(`"${item}"을(를) 삭제하시겠습니까?\n관련 태스크의 담당자 정보도 확인이 필요합니다.`)){
-    alert(`"${item}" 삭제 완료\n(실제 연동 시 DB에서 제거)`);
-  }
+  if(!confirm('"'+item+'"을(를) 삭제하시겠습니까?')) return;
+  _removeMgr(item); _pushOp({op:'del',name:item});
 }
 function mgrAdd(section){
-  const v = prompt(`[${section}] 새 항목 이름:`);
-  if(v && v.trim()) alert(`"${v.trim()}" 추가 완료\n(실제 연동 시 DB에 저장)`);
+  var v=prompt('['+section+'] 새 항목 이름:'); if(!(v&&v.trim())) return;
+  var nv=v.trim(); _addMgr(section,nv); _pushOp({op:'add',section:section,name:nv});
 }
 // 페이지 로드 시 기본 프로젝트 렌더링
 window.addEventListener('DOMContentLoaded',async()=>{
-  renderTaskList('일잘러2026');refreshData();initMgrReorder();initProjDelete();restoreMgrLayout();
+  renderTaskList('일잘러2026');refreshData();initMgrReorder();applyMgrOps();initProjDelete();restoreMgrLayout();
   renderProjCalendar('일잘러2026');
   loadUser();
   await initMSAL(); // Microsoft 로그인 → 자동으로 SharePoint 데이터 로드
