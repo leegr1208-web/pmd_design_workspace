@@ -980,23 +980,21 @@ async function initSPIds(){
   if(!lists.value.length) throw new Error(`'${MSC.listName}' 목록을 찾을 수 없습니다`);
   _spListId=lists.value[0].id;
 }
+var SPF={proj:'_xd504__xb85c__xc81d__xd2b8_',type:'_xb514__xc790__xc778__xc885__xb9',draft:'_x0031__xcc28__xc2dc__xc548_',due:'_xb9c8__xac10__xc77c_',des:'_xb514__xc790__xc778__xb2f4__xb2',pmd:'PMD_xb2f4__xb2f9_',dest:'_xc81c__xcd9c__xcc98_',urg:'_xc911__xc694__xb3c4_',prog:'_xc9c4__xd589__xc0c1__xd669_',onedrive:'OneDrive_xb9c1__xd06c_'};
 function spToTask(item){
-  const f=item.fields||{};
-  const getDate=v=>(v||'').split('T')[0];
-  return{_spId:item.id,n:f.Title||'',p:f['프로젝트']||'',draft:getDate(f['1차시안']||f['x_005f1차시안']||''),due:getDate(f['마감일']||''),type:f['디자인종류']||'',des:f['디자인담당']||'',pmd:f['PMD담당']||'',dest:f['제출처']||'',urg:f['중요도']||'보통',prog:f['진행상황']||'대기',made:f['작성자']||'',madeAt:f['작성일']||''};
+  const f=item.fields||{}; const g=v=>(v||'').split('T')[0];
+  return {_spId:item.id,n:f.Title||'',p:f[SPF.proj]||'',draft:g(f[SPF.draft]||''),due:g(f[SPF.due]||''),type:f[SPF.type]||'',des:f[SPF.des]||'',pmd:f[SPF.pmd]||'',dest:f[SPF.dest]||'',urg:f[SPF.urg]||'보통',prog:f[SPF.prog]||'대기',made:(typeof f.Author==='string'?f.Author:''),madeAt:g(f.Created||'')};
 }
 function taskToFields(t){
-  const f={'Title':t.n,'진행상황':t.prog};
-  if(t.p) f['프로젝트']=t.p;
-  if(t.type) f['디자인종류']=t.type;
-  if(t.draft) f['1차시안']=t.draft+'T00:00:00Z';
-  if(t.due) f['마감일']=t.due+'T00:00:00Z';
-  if(t.des) f['디자인담당']=t.des;
-  if(t.pmd) f['PMD담당']=t.pmd;
-  if(t.dest) f['제출처']=t.dest;
-  if(t.urg) f['중요도']=t.urg;
-  if(t.made) f['작성자']=t.made;
-  if(t.madeAt) f['작성일']=t.madeAt;
+  const f={'Title':t.n}; f[SPF.prog]=t.prog;
+  if(t.p) f[SPF.proj]=t.p;
+  if(t.type) f[SPF.type]=t.type;
+  if(t.draft) f[SPF.draft]=t.draft+'T00:00:00Z';
+  if(t.due) f[SPF.due]=t.due+'T00:00:00Z';
+  if(t.des) f[SPF.des]=t.des;
+  if(t.pmd) f[SPF.pmd]=t.pmd;
+  if(t.dest) f[SPF.dest]=t.dest;
+  if(t.urg) f[SPF.urg]=t.urg;
   return f;
 }
 /* ===== [PMD] 디자인캘린더 연동 ===== */
