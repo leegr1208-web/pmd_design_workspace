@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PMD 디자인 워크스페이스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" defer></script>
+<script>
+/* JS 에러 감지기 - 빨간 배너로 표시 */
+window.onerror=function(msg,src,line,col,err){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;z-index:99999;padding:14px 18px;font-size:13px;font-family:monospace';
+  d.textContent='JS 오류 ('+line+'행): '+msg;
+  document.body&&document.body.appendChild(d);
+  return false;
+};
+/* JS 실행 확인 */
+window.addEventListener('DOMContentLoaded',function(){
+  var t=document.createElement('div');
+  t.id='jsok';
+  t.style.cssText='position:fixed;bottom:8px;right:8px;background:#16a34a;color:#fff;border-radius:8px;padding:6px 12px;font-size:11px;z-index:99998';
+  t.textContent='✓ JS 실행 중';
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove();},3000);
+});
+</script>
+<style>
+:root{
+  --bg:#f3f6fb;--surface:#ffffff;--ink:#1a2035;--ink-soft:#8896ab;
+  --line:#e2eaf5;--line-soft:#edf3fa;
+  --accent:#4361ee;--accent-deep:#3451d1;--accent-soft:#edf1fd;--accent-mid:#c5d0f8;
+  /* 담당자 색상 — 뚜렷하고 눈에 편안한 중채도 */
+  --c-kim:#6aaef5;    /* 김희종 - 소프트 하늘 */
+  --c-kim-bg:#eff7ff;
+  --c-taesung:#3dbf98;/* 태성 - 소프트 민트 */
+  --c-taesung-bg:#edfaf4;
+  --c-wooil:#e8a030;  /* 우일 - 소프트 골드 */
+  --c-wooil-bg:#fff8e6;
+  --c-flow:#a87de5;   /* 플로우 - 소프트 라벤더 */
+  --c-flow-bg:#f5f2ff;
+  /* PMD 개인별 구분 색 — 파스텔 계열 */
+  --p-kyuri:#7aabf8;  /* 이규리 - 코너플라워 */
+  --p-heeju:#9a87e8;  /* 한희주 - 소프트 퍼플 */
+  --p-hyunjung:#3fc0e8;/* 김현정 - 소프트 사이안 */
+  --p-yeji:#2ab5d5;   /* 김예지 - 소프트 틸 */
+  --p-blue:#6b97f0;--p-soft:#edf1fd;
+  --outlook:#0078d4;--outlook-soft:#e8f2fb;
+  --danger:#ef4444;--warn:#f59e0b;--radius:16px;
+  --shadow:0 1px 3px rgba(26,32,53,.04),0 8px 28px rgba(67,97,238,.07);--side-w:248px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'IBM Plex Sans KR',sans-serif;background:#f3f6fb;color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+.layout{display:flex;min-height:100vh}
+aside{width:var(--side-w);background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:40}
+.side-brand{padding:22px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:11px}
+.side-brand .mark{width:38px;height:38px;border-radius:12px;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:'Space Grotesk';font-weight:700;font-size:16px}
+.side-brand h1{font-size:15px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.side-brand span{display:block;font-size:11px;color:var(--ink-soft);font-weight:500;margin-top:1px}
+.side-nav{padding:14px 12px;flex:1}
+.snav{width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;color:var(--ink-soft);text-align:left;margin-bottom:3px;transition:.15s}
+.snav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.snav:hover{background:var(--bg);color:var(--ink)}
+.snav.active{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(67,97,238,.28)}
+.side-foot{padding:14px 16px;border-top:1px solid var(--line)}
+.side-add{width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:.15s}
+.side-add:hover{background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(91,110,225,.24)}
+.side-tools{margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft)}
+.side-tools-label{font-size:10px;font-weight:700;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase;margin-bottom:9px;opacity:.7}
+.tool-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+/* 관리 - 프로젝트 순서 버튼 */
+.mp-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.mp-row:last-of-type{border-bottom:none}
+.ord-btns{display:flex;flex-direction:column;gap:1px;flex-shrink:0}
+.ord-btn{width:20px;height:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:8px;border-radius:4px;cursor:pointer;display:grid;place-items:center;transition:.12s;line-height:1}
+.ord-btn:hover{background:var(--accent-soft);border-color:var(--accent-mid);color:var(--accent)}
+.drag-handle{color:var(--ink-soft);opacity:.35;font-size:13px;cursor:grab;flex-shrink:0;letter-spacing:-1px}
+.tool-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:.15s;text-decoration:none}
+.tool-btn:hover{background:var(--accent-soft);border-color:var(--accent-mid);transform:translateY(-1px);box-shadow:0 4px 10px rgba(91,110,225,.12)}
+.tool-btn img{width:22px;height:22px;border-radius:5px;object-fit:contain}
+.tool-btn span{font-size:9px;font-weight:600;color:var(--ink-soft);white-space:nowrap}
+/* 사이드바 프로젝트 서브메뉴 */
+.sub-nav{display:none;padding:2px 10px 6px 42px}
+.sub-nav.open{display:block}
+.sub-item{width:100%;display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:9px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);text-align:left;transition:.12s;margin-bottom:1px}
+.sub-item::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--line);flex-shrink:0;transition:.12s}
+.sub-item:hover{background:var(--bg);color:var(--ink)}
+.sub-item.active{color:var(--accent);background:var(--accent-soft)}
+.sub-item.active::before{background:var(--accent)}
+.content{margin-left:var(--side-w);flex:1;min-width:0}
+.topbar{display:none}
+main{padding:28px 34px}
+.view{display:none;animation:fade .3s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view-head{margin-bottom:20px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.view-head h2{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.view-head p{font-size:13px;color:var(--ink-soft);margin-top:3px}
+.task{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:15px 17px;margin-bottom:9px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+.task .left{width:4px;align-self:stretch;border-radius:4px;flex-shrink:0;min-height:38px}
+.task .body{flex:1;min-width:0}
+.task .title{font-size:15px;font-weight:600;letter-spacing:-.01em}
+/* 담당자 2단 구분 배지 */
+.who-split{display:inline-flex;align-items:stretch;border-radius:7px;overflow:hidden;border:1px solid var(--line);font-size:11.5px;font-weight:600;margin-top:6px}
+.who-split .seg{display:inline-flex;align-items:center;gap:5px;padding:3px 9px}
+.who-split .seg .av{width:7px;height:7px;border-radius:50%}
+.who-split .seg.des{background:var(--c-kim-bg);color:#23489c}
+.who-split .seg.pmd{background:var(--accent-soft);color:var(--accent-deep);border-left:1px solid var(--line)}
+.who-split .seg .tag{font-size:9px;font-weight:700;opacity:.7;margin-right:1px}
+.task .meta{font-size:12.5px;color:var(--ink-soft);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 12px}
+.urgent-tag{font-size:10px;font-weight:700;color:#dc2626;background:#fff1f2;border:1px solid #fecaca;padding:2px 8px;border-radius:6px;margin-left:7px;vertical-align:middle}
+.st-wait{color:#8896ab;background:#f3f6fb;border-color:#e2eaf5}
+.st-prog{color:#2d72e8;background:#eff6ff;border-color:#bfdbff}
+.st-review{color:#d97706;background:#fff8e6;border-color:#fde68a}
+.st-done{color:#16a34a;background:#f0fdf4;border-color:#bbf7d0;text-decoration:line-through}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px 20px;box-shadow:var(--shadow);transition:.18s}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(67,97,238,.10)}
+.kpi .n{font-size:32px;font-weight:700;font-family:'Space Grotesk';letter-spacing:-.03em;line-height:1}
+.kpi .l{font-size:12px;color:var(--ink-soft);font-weight:600;margin-top:8px;letter-spacing:.01em}
+.kpi.danger .n{color:#ef4444}
+.kpi.warn .n{color:#f59e0b}
+.detail-block{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-title{font-size:13px;font-weight:700;letter-spacing:.03em;color:var(--ink-soft);margin-bottom:16px;text-transform:uppercase}
+.card-title .note{text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink-soft);margin-left:8px}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.bar-row .nm{font-size:12.5px;font-weight:600;color:var(--ink-soft);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:28px;background:var(--line-soft);border-radius:8px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:8px;display:flex;align-items:center;padding-left:11px;color:#fff;font-size:11.5px;font-weight:700;font-family:'Space Grotesk';transition:.4s cubic-bezier(.4,0,.2,1)}
+/* 업무량 소제목 강조 */
+.sub-head{display:flex;align-items:center;gap:10px;margin:4px 0 14px}
+.sub-head:not(:first-of-type){margin-top:22px}
+.sub-head .badge{font-size:12px;font-weight:700;color:#fff;padding:4px 12px;border-radius:7px;letter-spacing:.02em}
+.sub-head .badge.des{background:var(--c-kim)}
+.sub-head .badge.pmd{background:var(--accent)}
+.sub-head .line{flex:1;height:1px;background:var(--line)}
+.viewtoggle{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.viewtoggle button{border:none;background:none;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft);padding:8px 15px;cursor:pointer;transition:.12s}
+.viewtoggle button.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(91,110,225,.22)}
+.cal-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+.legend-label{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;margin-right:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 12px;background:var(--surface);border:1px solid var(--line);border-radius:30px;cursor:pointer;transition:.12s;user-select:none}
+.chip{transition:.15s}
+.chip:not(.off){border-color:var(--accent-mid);background:var(--accent-soft)}
+.chip.off{opacity:.5;background:var(--surface);border-color:var(--line)}
+.chip .sw{width:11px;height:11px;border-radius:50%}
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.cal-top{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line)}
+.cal-top h3{font-size:16px;font-weight:700;font-family:'Space Grotesk'}
+.cal-sync{display:flex;align-items:center;gap:8px;padding:11px 18px;border-top:1px solid var(--line);font-size:12px;font-weight:600;color:var(--ink-soft);background:var(--bg);border-radius:0 0 12px 12px}
+.cal-sync .dot{width:8px;height:8px;border-radius:50%;background:#bbb;flex:0 0 auto}
+.cal-sync.ok{color:#1a7f4b}.cal-sync.ok .dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+.cal-sync.err{color:#b4541f}.cal-sync.err .dot{background:#f59e0b}
+.cal-sync.loading{color:#0a6cc2}.cal-sync.loading .dot{background:#0078d4;animation:calpulse 1s ease-in-out infinite}
+@keyframes calpulse{0%,100%{opacity:.35}50%{opacity:1}}
+#taskBody.done-collapsed .done-row{display:none}
+.done-sep td{background:var(--bg);padding:9px 14px!important;border-top:1px solid var(--line)}
+.done-toggle{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink-soft);user-select:none}
+.done-toggle .ar{display:inline-block;width:14px}
+tr.done-row td{opacity:.6}
+.restore-btn{margin-left:6px;font-size:11px;font-weight:700;color:#2563eb;background:#eef4ff;border:1px solid #cfe0ff;border-radius:5px;padding:2px 8px;cursor:pointer;vertical-align:middle}
+.restore-btn:hover{background:#dde9ff}
+.cal-nav{display:flex;gap:6px}
+.cal-nav button{width:30px;height:30px;border-radius:7px;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--ink-soft)}
+.cal-body{display:none}
+.cal-body.active{display:block}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-grid .dow{text-align:center;font-size:11px;font-weight:700;color:var(--ink-soft);padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.cal-grid .dow.sun{color:var(--danger)}
+.cell{min-height:84px;border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:6px}
+.cell:nth-child(7n){border-right:none}
+.cell .num{font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:4px}
+.cell.dim .num{opacity:.35}
+.cell.today .num{background:var(--accent);color:#fff;width:21px;height:21px;border-radius:50%;display:grid;place-items:center}
+.ev{font-size:10.5px;font-weight:600;color:#fff;padding:2px 6px;border-radius:5px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.wcol{border-right:1px solid var(--line-soft);min-height:150px;padding:8px 7px}
+.wcol:last-child{border-right:none}
+.wcol .wd{font-size:11px;font-weight:700;color:var(--ink-soft);text-align:center;margin-bottom:8px}
+.wcol .wd .dn{display:block;font-size:15px;color:var(--ink);font-family:'Space Grotesk';margin-top:2px}
+.wcol.today .wd .dn{color:var(--accent)}
+.wcol.sun .wd{color:var(--danger)}
+.wev{font-size:10px;font-weight:600;color:#fff;padding:3px 6px;border-radius:5px;margin-bottom:4px;line-height:1.3}
+.wev .t1{display:block;font-size:9px;opacity:.85;font-weight:500}
+.day-list{padding:6px 0}
+.day-row{display:flex;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line-soft);align-items:center}
+.day-row:last-child{border-bottom:none}
+.day-time{font-size:12px;font-weight:700;font-family:'Space Grotesk';color:var(--ink-soft);width:54px;flex-shrink:0}
+.day-bar{width:4px;align-self:stretch;border-radius:4px;min-height:30px}
+.day-c{flex:1}
+.day-c .dt{font-size:13.5px;font-weight:600}
+.day-c .dm{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+/* === 프로젝트 탭 (밑줄형, 알약과 구분) === */
+.proj-tabs{display:flex;gap:2px;border-bottom:2px solid var(--line);margin-bottom:20px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.proj-tab{font-size:14.5px;font-weight:600;padding:12px 18px 13px;border:none;background:none;color:var(--ink-soft);cursor:pointer;white-space:nowrap;position:relative;border-bottom:3px solid transparent;margin-bottom:-2px;transition:.15s;flex-shrink:0}
+.proj-tab:hover{color:var(--ink)}
+.proj-tab.active{color:var(--accent);font-weight:700;border-bottom-color:var(--accent)}
+.filter-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;align-items:center}
+.allbtn{font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-mid);border-radius:30px;padding:6px 13px;cursor:pointer;transition:.12s}
+.allbtn.off{color:var(--ink-soft);background:var(--surface);border-color:var(--line)}
+.manage-btn{font-size:12.5px;font-weight:700;color:var(--accent);background:var(--surface);border:1px solid var(--accent-mid);border-radius:10px;padding:9px 15px;cursor:pointer;transition:.12s;white-space:nowrap}
+.manage-btn:hover{background:var(--accent-soft)}
+.manage-panel{display:none;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:18px}
+.manage-panel.open{display:block;animation:fade .25s ease}
+.mp-title{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:12px}
+.mp-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.mp-row:last-child{border-bottom:none}
+.mp-name{font-size:13.5px;font-weight:600}
+.mp-toggle{font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--surface);color:var(--ink-soft);transition:.12s}
+.mp-toggle.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-mid)}
+.weekly{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+.weekly-top{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:8px}
+.weekly-top h3{font-size:14px;font-weight:700}
+.weekly-top h3 .wk{font-family:'Space Grotesk';color:var(--ink-soft);font-weight:500;margin-left:6px}
+/* 현재 사용자 표시 */
+.user-bar{display:flex;align-items:center;gap:9px;margin-top:12px;padding:9px 12px;border-radius:10px;background:var(--bg);cursor:pointer;border:1px solid var(--line);transition:.12s}
+.user-bar:hover{background:var(--accent-soft);border-color:var(--accent-mid)}
+.user-bar .uav{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.user-bar .uinfo{flex:1;min-width:0}
+.user-bar .uname{font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-bar .urole{font-size:10.5px;color:var(--ink-soft);font-weight:500}
+.user-bar .uedit{font-size:10px;color:var(--ink-soft);flex-shrink:0}
+/* 사용자 선택 모달 */
+.umodal-bg{display:flex;position:fixed;inset:0;background:rgba(26,32,53,.5);z-index:200;align-items:center;justify-content:center}
+.umodal-bg.hidden{display:none}
+.umodal{background:var(--surface);width:100%;max-width:400px;border-radius:20px;padding:24px;margin:16px;animation:pop .25s cubic-bezier(.2,.8,.2,1)}
+.umodal h3{font-size:17px;font-weight:700;margin-bottom:4px}
+.umodal p{font-size:12.5px;color:var(--ink-soft);margin-bottom:18px}
+.ugroup-label{font-size:10.5px;font-weight:700;color:var(--ink-soft);letter-spacing:.05em;text-transform:uppercase;margin:14px 0 8px}
+.ugroup-label:first-of-type{margin-top:0}
+.ulist{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.upick{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:.12s;text-align:left;font-family:inherit}
+.upick:hover{border-color:var(--accent-mid);background:var(--accent-soft)}
+.upick.selected{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-mid)}
+.upick .pav{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.upick .pname{font-size:13px;font-weight:700;color:var(--ink)}
+.upick .prole{font-size:10.5px;color:var(--ink-soft)}
+.upick.is-admin .pname::after{content:'관리자';font-size:9px;font-weight:700;color:var(--danger);background:#fbe9e7;padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:middle}
+.uconfirm{width:100%;margin-top:16px;padding:13px;border-radius:11px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.uconfirm:hover{background:var(--accent-deep)}
+/* Outlook 캘린더 추가 버튼 */
+.cal-add-btn{width:28px;height:28px;border-radius:7px;border:1px solid #bdd9f5;background:var(--outlook-soft);cursor:pointer;display:grid;place-items:center;font-size:13px;color:var(--outlook);transition:.12s;flex-shrink:0}
+.cal-add-btn:hover{background:var(--outlook);color:#fff;box-shadow:0 3px 10px rgba(0,120,212,.25)}
+/* 자동화 안내 카드 */
+.automate-card{background:linear-gradient(135deg,#f0f7ff 0%,#e8f2fb 100%);border:1px solid #bdd9f5;border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.automate-card h4{font-size:14px;font-weight:700;color:var(--outlook);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.automate-card .desc{font-size:12.5px;color:#1a3a5c;line-height:1.6;margin-bottom:14px}
+.step-list{list-style:none;padding:0}
+.step-list li{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:#1a3a5c;margin-bottom:8px;line-height:1.5}
+.step-num{width:20px;height:20px;border-radius:50%;background:var(--outlook);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;flex-shrink:0;margin-top:1px}
+.color-map{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.color-tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:7px;background:var(--surface);border:1px solid var(--line)}
+.automate-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--outlook);background:#fff;border:1px solid #bdd9f5;padding:8px 14px;border-radius:9px;text-decoration:none;margin-top:12px;transition:.12s}
+.automate-link:hover{background:var(--outlook);color:#fff}
+/* 프로젝트 캘린더 보기 토글 - 달력 바로 위 우측 */
+.pcal-toolbar{display:flex;justify-content:flex-end;margin-bottom:10px}
+.plist{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.plist-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px}
+.plist-head h3{font-size:15px;font-weight:700}
+.plist-head .sub{font-size:12px;color:var(--ink-soft);margin-top:1px}
+.sortsel{display:flex;align-items:center;gap:7px}
+.sortsel label{font-size:11px;font-weight:700;color:var(--ink-soft)}
+.sortsel select{font-family:inherit;font-size:12.5px;font-weight:600;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+.tbl-wrap{overflow-x:auto}
+table.tasks{width:100%;border-collapse:collapse;min-width:880px}
+table.tasks th{font-size:11px;font-weight:700;color:var(--ink-soft);text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;background:var(--bg)}
+table.tasks td{font-size:13px;padding:13px 14px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+table.tasks tr:last-child td{border-bottom:none}
+table.tasks tbody tr{cursor:pointer;transition:.12s}
+table.tasks tbody tr:hover td{background:#f3f7f4}
+/* 완료 행 회색조 */
+table.tasks tbody tr.done td{background:#f2f3f1;color:var(--ink-soft)}
+table.tasks tbody tr.done:hover td{background:#eceeea}
+table.tasks tbody tr.done .ttl{color:var(--ink-soft);text-decoration:line-through}
+table.tasks tbody tr.done .dtype{filter:grayscale(1);opacity:.7}
+table.tasks tbody tr.done .who .av{filter:grayscale(1)}
+table.tasks tbody tr.done .due,table.tasks tbody tr.done .draft{color:var(--ink-soft)!important}
+.dtype{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;white-space:nowrap;display:inline-block}
+.dt-logo{background:var(--c-flow-bg);color:#7a4bc4}
+.dt-print{background:var(--c-wooil-bg);color:#c0741f}
+.dt-sign{background:#fde9e7;color:#c0392b}
+.dt-online{background:var(--c-kim-bg);color:#2c5cc5}
+.dt-ad{background:var(--c-taesung-bg);color:#2f8f5b}
+.dt-sys{background:#eceae4;color:#6b6e68}
+.dt-etc{background:#ededed;color:#6b6e68}
+td .ttl{font-weight:600;font-size:13.5px}
+td .draft{font-size:12.5px;font-weight:600}
+td .draft.soon{color:var(--warn)}
+td .due{font-size:12.5px;font-weight:700}
+td .due.soon{color:var(--danger)}
+.who{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600}
+.who .av{width:7px;height:7px;border-radius:50%}
+.who.pmd{font-size:12px;color:#2c5680}
+.who.pmd .av{background:var(--p-blue)}
+.urg{font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.urg::before{content:'●';font-size:7px;flex-shrink:0;line-height:1}
+.urg.urgent{color:#dc2626}
+.urg.urgent::before{content:'!';font-size:12px;font-weight:900;font-family:'Space Grotesk';color:#dc2626}
+.urg.high{color:#ef4444}
+.urg.high::before{color:#ef4444}
+.urg.mid{color:#16a34a}
+.urg.mid::before{color:#22c55e}
+.urg.low{color:#94a3b8}
+.urg.low::before{color:#cbd5e1}
+/* 중요도 선택 래퍼 */
+.urg-wrap{display:flex;align-items:center;gap:8px;width:100%}
+.urg-icon{font-size:14px;font-weight:900;width:22px;text-align:center;flex-shrink:0;transition:.15s}
+.urg-wrap select{flex:1}
+.prog{font-size:12px;font-weight:700;padding:5px 11px;border-radius:7px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;display:inline-block}
+.mgr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.mgr-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.mgr-card h3{font-size:14.5px;font-weight:700;margin-bottom:4px}
+.mgr-card .d{font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+.mgr-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.mgr-item:last-of-type{border-bottom:none}
+.mgr-item .sw{width:11px;height:11px;border-radius:50%}
+.mgr-item .perm{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--danger);background:#fbe9e7;padding:2px 8px;border-radius:5px}
+.mgr-item .tg{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--ink-soft);background:var(--bg);padding:2px 8px;border-radius:5px}
+.mgr-sub{font-size:11.5px;color:var(--ink-soft);padding:3px 0 3px 20px}
+.mgr-add{margin-top:12px;font-size:12.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:none;padding:9px 14px;border-radius:9px;cursor:pointer;width:100%}
+/* 관리 항목 액션 버튼 */
+.mgr-actions{display:flex;gap:5px;margin-left:auto;flex-shrink:0}
+.mgr-move{font-size:9px;width:22px}
+.mgr-icon-btn{width:27px;height:27px;border-radius:7px;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center;font-size:13px;color:var(--ink-soft);transition:.12s;line-height:1}
+.mgr-icon-btn:hover{background:var(--accent-soft);border-color:var(--accent-mid);color:var(--accent)}
+.mgr-icon-btn.del:hover{background:#fff1f2;border-color:#fecaca;color:var(--danger)}
+.perm-badge{font-size:10.5px;font-weight:700;color:var(--danger);background:#fbe9e7;padding:2px 8px;border-radius:5px;white-space:nowrap}
+.role-badge{font-size:10.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:5px;white-space:nowrap}
+.sub-items-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:4px 0 4px 18px}
+.sub-chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;background:var(--bg);border:1px solid var(--line);color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px;cursor:pointer;transition:.1s}
+.sub-chip:hover{border-color:var(--accent-mid);color:var(--accent);background:var(--accent-soft)}
+.sub-chip .sub-del{font-size:10px;opacity:.5;transition:.1s}
+.sub-chip:hover .sub-del{opacity:1;color:var(--danger)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(20,20,15,.45);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);width:100%;max-width:540px;border-radius:18px;padding:24px 22px;max-height:90vh;overflow-y:auto;margin:16px;animation:pop .25s cubic-bezier(.2,.8,.2,1)}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:4px}
+.modal .mhint{font-size:12.5px;color:var(--ink-soft);margin-bottom:18px}
+.modal .mhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.del-btn{font-size:12px;font-weight:700;color:var(--danger);background:#fbe9e7;border:none;padding:8px 13px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px}
+.field label .req{color:var(--danger);margin-left:3px}
+.field label .opt{color:var(--ink-soft);font-weight:500;margin-left:5px;font-size:11px}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;background:var(--bg);color:var(--ink)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.req-section{padding:15px;background:var(--accent-soft);border-radius:12px;margin-bottom:16px}
+.req-section .sec-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;margin-bottom:12px;text-transform:uppercase}
+.opt-label{font-size:11px;font-weight:700;color:var(--ink-soft);letter-spacing:.05em;margin-bottom:12px;text-transform:uppercase}
+.modal-actions{display:flex;gap:10px;margin-top:8px}
+.btn{flex:1;padding:13px;border-radius:11px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{background:var(--bg);color:var(--ink-soft);border:1px solid var(--line)}
+.btn-save{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(91,110,225,.26)}
+.btn-save:hover{background:var(--accent-deep)}
+.audit{font-size:11px;color:var(--ink-soft);margin-top:14px;padding-top:13px;border-top:1px solid var(--line-soft)}
+.audit .arow{display:flex;justify-content:space-between;margin-bottom:3px}
+.audit .arow:last-child{margin-bottom:0}
+.audit .mod{color:var(--c-kim);font-weight:600}
+@media(max-width:820px){
+  aside{transform:translateX(-100%);transition:.25s;box-shadow:0 0 40px rgba(0,0,0,.15)}
+  aside.open{transform:none}
+  .content{margin-left:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+  .topbar .mb{display:flex;align-items:center;gap:10px}
+  .topbar .mb .mark{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:'Space Grotesk';font-weight:700;font-size:13px}
+  .topbar .mb h1{font-size:14px;font-weight:700}
+  .hamb{width:38px;height:38px;border:1px solid var(--line);border-radius:9px;background:var(--surface);cursor:pointer;display:grid;place-items:center}
+  .hamb svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:2}
+  .scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:35}
+  .scrim.open{display:block}
+  main{padding:18px 14px;padding-bottom:30px}
+  .kpi-row{gap:8px}.kpi{padding:13px}.kpi .n{font-size:24px}
+  .field-grid{grid-template-columns:1fr}
+  .mgr-grid{grid-template-columns:1fr}
+  .cell{min-height:58px}.ev{font-size:9px}
+  .wcol{min-height:90px}
+  .view-head h2{font-size:19px}
+}
+</style>
+</head>
+<body>
+<div class="layout" id="mainLayout" style="display:none">
+  <aside id="aside">
+    <div class="side-brand">
+      <div class="mark">PD</div>
+      <div><h1>PMD 디자인<br>워크스페이스</h1><span>전 직원 공유 · 일정 관리</span></div>
+    </div>
+    <div class="side-nav">
+      <button class="snav active" data-v="dash" onclick="go('dash')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>대시보드</button>
+      <button class="snav" data-v="cal" onclick="go('cal')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>일정관리</button>
+      <button class="snav" data-v="proj" onclick="go('proj')"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>프로젝트</button>
+      <div class="sub-nav" id="projSubNav">
+        <button class="sub-item active" data-pj="일잘러2026" onclick="selectProj('일잘러2026',this)">일잘러2026</button>
+        <button class="sub-item" data-pj="1인가구2026" onclick="selectProj('1인가구2026',this)">1인가구2026</button>
+        <button class="sub-item" data-pj="오티즘2026" onclick="selectProj('오티즘2026',this)">오티즘2026</button>
+        <button class="sub-item" data-pj="제안서" onclick="selectProj('제안서',this)">제안서</button>
+        <button class="sub-item" data-pj="PMD" onclick="selectProj('PMD',this)">PMD</button>
+        <button class="sub-item" data-pj="기타" onclick="selectProj('기타',this)">기타</button>
+      </div>
+      <button class="snav" data-v="mgr" onclick="go('mgr')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>관리</button>
+    </div>
+    <div class="side-foot">
+      <div class="user-bar" onclick="openUserPicker()" id="userBar" title="사용자 변경">
+        <div class="uav" id="userAv" style="background:var(--p-kyuri)">이</div>
+        <div class="uinfo">
+          <div class="uname" id="userName">사용자 선택</div>
+          <div class="urole" id="userRole">클릭하여 설정</div>
+        </div>
+        <span class="uedit">✏</span>
+      </div>
+      <button class="side-add" onclick="openNew()" style="margin-top:10px">＋ 새 태스크</button>
+      <div class="side-tools">
+        <div class="side-tools-label">연결된 툴</div>
+        <div class="tool-grid">
+          <a class="tool-btn" title="디자인 워크스페이스 · Teams" href="https://teams.microsoft.com/l/team/19%3A7n_UCGvBVzYBo23bXUe0IqOWAxOOZn1qu97YfNv-lQ01%40thread.tacv2/conversations?groupId=2d6aaad5-a89b-4829-a287-524bd0b16987&tenantId=9452cae0-9434-43ed-8edb-dccd26f181f0" target="_blank" rel="noopener">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg" alt="Teams">
+            <span>Teams</span>
+          </a>
+          <a class="tool-btn" title="SharePoint" href="https://thepmd.sharepoint.com" target="_blank" rel="noopener">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Microsoft_Office_SharePoint_%282019%E2%80%93present%29.svg" alt="SharePoint">
+            <span>SharePoint</span>
+          </a>
+          <a class="tool-btn" title="Canva" href="https://www.canva.com" target="_blank" rel="noopener">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/bb/Canva_Logo.svg" alt="Canva">
+            <span>Canva</span>
+          </a>
+          <a class="tool-btn" title="Outlook 캘린더" href="https://outlook.office.com/calendar" target="_blank" rel="noopener">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Calendar">
+            <span>Calendar</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" onclick="toggleSide()"></div>
+  <div class="content">
+    <div class="topbar">
+      <div class="mb"><div class="mark">PD</div><h1>PMD 디자인 워크스페이스</h1></div>
+      <button class="hamb" onclick="toggleSide()"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    </div>
+    <main>
+      <!-- ===== 대시보드 ===== -->
+      <section class="view active" id="dash">
+        <div class="view-head"><div><h2>대시보드</h2><p>긴급 → 프로젝트별 → 담당자별 순</p></div></div>
+        <div class="kpi-row" id="dashKpi"></div>
+        <div class="detail-block">
+          <div class="card-title">① 긴급 리스트</div>
+          <div id="dashUrgent"></div>
+        </div>
+        <div class="detail-block">
+          <div class="card-title">② 프로젝트별 할일 수</div>
+          <div id="dashProj"></div>
+        </div>
+        <div class="detail-block">
+          <div class="card-title">③ 담당자별 업무량<span class="note">완료 제외 · 미완료 task 기준</span></div>
+          <div id="dashOwner"></div>
+        </div>
+      </section>
+      <!-- ===== 일정관리 ===== -->
+      <section class="view" id="cal">
+        <div class="view-head">
+          <div><h2>일정관리</h2><p>전체 담당자 표시</p></div>
+        </div>
+        <div class="cal-legend">
+          <span class="legend-label">디자인</span>
+          <button class="allbtn" onclick="toggleAll(this,'cal-des')">전체</button>
+          <span class="chip" data-grp="cal-des" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--c-kim)"></span>김희종</span>
+          <span class="chip" data-grp="cal-des" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--c-taesung)"></span>태성</span>
+          <span class="chip" data-grp="cal-des" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--c-wooil)"></span>우일</span>
+          <span class="chip" data-grp="cal-des" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--c-flow)"></span>플로우</span>
+        </div>
+        <div class="cal-legend">
+          <span class="legend-label">PMD</span>
+          <button class="allbtn" onclick="toggleAll(this,'cal-pmd')">전체</button>
+          <span class="chip" data-grp="cal-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>이규리</span>
+          <span class="chip" data-grp="cal-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>한희주</span>
+          <span class="chip" data-grp="cal-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>김현정</span>
+          <span class="chip" data-grp="cal-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>김예지</span>
+          <span class="chip" data-grp="cal-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>김다예</span>
+          <span class="chip" data-grp="cal-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>이소현</span>
+          <span class="chip" data-grp="cal-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>최유정</span>
+          <span class="chip" data-grp="cal-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>박재환</span>
+          <span class="chip" data-grp="cal-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>김남순</span>
+        </div>
+        <div class="pcal-toolbar">
+          <div class="viewtoggle">
+            <button class="active" onclick="calView('m',this)">Monthly</button>
+            <button onclick="calView('w',this)">Weekly</button>
+            <button onclick="calView('d',this)">Daily</button>
+          </div>
+        </div>
+        <div class="cal">
+          <div class="cal-top"><h3 id="calTitle">2026. 05</h3><div class="cal-nav"><button onclick="calShift('cal',-1)">&lsaquo;</button><button onclick="calShift('cal',1)">&rsaquo;</button></div></div>
+          <div class="cal-body active" id="cal-m">
+            <div class="cal-grid">
+              <div class="dow sun">일</div><div class="dow">월</div><div class="dow">화</div><div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow">토</div>
+              <div class="cell dim"><div class="num">27</div></div><div class="cell dim"><div class="num">28</div></div><div class="cell dim"><div class="num">29</div></div><div class="cell dim"><div class="num">30</div></div>
+              <div class="cell"><div class="num">1</div></div>
+              <div class="cell"><div class="num">2</div></div><div class="cell"><div class="num">3</div></div>
+              <div class="cell"><div class="num">4</div></div>
+              <div class="cell"><div class="num">5</div></div>
+              <div class="cell"><div class="num">6</div></div>
+              <div class="cell"><div class="num">7</div></div>
+              <div class="cell"><div class="num">8</div></div>
+              <div class="cell"><div class="num">9</div></div><div class="cell"><div class="num">10</div></div>
+              <div class="cell"><div class="num">11</div></div>
+              <div class="cell"><div class="num">12</div></div>
+              <div class="cell"><div class="num">13</div></div>
+              <div class="cell"><div class="num">14</div></div>
+              <div class="cell"><div class="num">15</div></div>
+              <div class="cell"><div class="num">16</div></div><div class="cell"><div class="num">17</div></div>
+              <div class="cell"><div class="num">18</div></div>
+              <div class="cell"><div class="num">19</div></div>
+              <div class="cell today"><div class="num">20</div></div>
+              <div class="cell"><div class="num">21</div></div><div class="cell"><div class="num">22</div></div>
+              <div class="cell"><div class="num">23</div></div>
+              <div class="cell"><div class="num">24</div></div><div class="cell"><div class="num">25</div></div>
+              <div class="cell"><div class="num">26</div></div>
+              <div class="cell"><div class="num">27</div></div><div class="cell"><div class="num">28</div></div>
+              <div class="cell"><div class="num">29</div></div>
+              <div class="cell"><div class="num">30</div></div><div class="cell"><div class="num">31</div></div>
+            </div>
+          </div>
+          <div class="cal-body" id="cal-w">
+            <div class="week-grid">
+              <div class="wcol sun"><div class="wd">일<span class="dn">18</span></div></div>
+              <div class="wcol"><div class="wd">월<span class="dn">19</span></div></div>
+              <div class="wcol today"><div class="wd">화<span class="dn">20</span></div></div>
+              <div class="wcol"><div class="wd">수<span class="dn">21</span></div></div>
+              <div class="wcol"><div class="wd">목<span class="dn">22</span></div></div>
+              <div class="wcol"><div class="wd">금<span class="dn">23</span></div></div>
+              <div class="wcol sun"><div class="wd">토<span class="dn">24</span></div></div>
+            </div>
+          </div>
+          <div class="cal-body" id="cal-d">
+            <div class="day-list">
+              
+              
+              
+            </div>
+          </div>
+          <div id="calSyncStatus" class="cal-sync"><span class="dot"></span>Outlook 캘린더 연동 준비 중…</div>
+        </div>
+      </section>
+      <!-- ===== 프로젝트 ===== -->
+      <section class="view" id="proj">
+        <div class="view-head">
+          <div><h2 id="projTitle">일잘러2026</h2><p>캘린더 + 할일 리스트 · 담당자 필터</p></div>
+        </div>
+        <div class="filter-row">
+          <span class="legend-label">디자인</span>
+          <button class="allbtn" onclick="toggleAll(this,'pj-des')">전체</button>
+          <span class="chip" data-grp="pj-des" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--c-kim)"></span>김희종</span>
+          <span class="chip" data-grp="pj-des" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--c-taesung)"></span>태성</span>
+          <span class="chip" data-grp="pj-des" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--c-wooil)"></span>우일</span>
+          <span class="chip" data-grp="pj-des" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--c-flow)"></span>플로우</span>
+        </div>
+        <div class="filter-row">
+          <span class="legend-label">PMD</span>
+          <button class="allbtn" onclick="toggleAll(this,'pj-pmd')">전체</button>
+          <span class="chip" data-grp="pj-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>이규리</span>
+          <span class="chip" data-grp="pj-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>한희주</span>
+          <span class="chip" data-grp="pj-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>김현정</span>
+          <span class="chip" data-grp="pj-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>김예지</span>
+          <span class="chip" data-grp="pj-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>김다예</span>
+          <span class="chip" data-grp="pj-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>이소현</span>
+          <span class="chip" data-grp="pj-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>최유정</span>
+          <span class="chip" data-grp="pj-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>박재환</span>
+          <span class="chip" data-grp="pj-pmd" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--p-blue)"></span>김남순</span>
+        </div>
+        <div class="pcal-toolbar">
+          <div class="viewtoggle">
+            <button class="active" onclick="pcalView('w',this)">Weekly</button>
+            <button onclick="pcalView('m',this)">Monthly</button>
+            <button onclick="pcalView('d',this)">Daily</button>
+          </div>
+        </div>
+        <div class="weekly">
+          <div class="weekly-top"><h3 id="pcalTitle">이번 주<span class="wk">May 18 &ndash; 24</span></h3><div class="cal-nav"><button onclick="calShift('pcal',-1)">&lsaquo;</button><button onclick="calShift('pcal',1)">&rsaquo;</button></div></div>
+          <div class="cal-body active" id="pcal-w">
+            <div class="week-grid">
+              <div class="wcol sun"><div class="wd">일<span class="dn">18</span></div></div>
+              <div class="wcol"><div class="wd">월<span class="dn">19</span></div><div class="wev" style="background:var(--c-kim)"><span class="t1">1차시안</span>KV 시안</div></div>
+              <div class="wcol today"><div class="wd">화<span class="dn">20</span></div><div class="wev" style="background:var(--c-kim)"><span class="t1">최종</span>메인 KV</div></div>
+              <div class="wcol"><div class="wd">수<span class="dn">21</span></div><div class="wev" style="background:var(--c-wooil)"><span class="t1">1차시안</span>현수막</div></div>
+              <div class="wcol"><div class="wd">목<span class="dn">22</span></div><div class="wev" style="background:var(--c-taesung)"><span class="t1">1차시안</span>브로슈어</div></div>
+              <div class="wcol"><div class="wd">금<span class="dn">23</span></div><div class="wev" style="background:var(--c-wooil)"><span class="t1">최종</span>현수막</div></div>
+              <div class="wcol sun"><div class="wd">토<span class="dn">24</span></div></div>
+            </div>
+          </div>
+          <div class="cal-body" id="pcal-m">
+            <div class="cal-grid">
+              <div class="dow sun">일</div><div class="dow">월</div><div class="dow">화</div><div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow">토</div>
+              <div class="cell dim"><div class="num">27</div></div><div class="cell dim"><div class="num">28</div></div><div class="cell dim"><div class="num">29</div></div><div class="cell dim"><div class="num">30</div></div>
+              <div class="cell"><div class="num">1</div></div><div class="cell"><div class="num">2</div></div><div class="cell"><div class="num">3</div></div>
+              <div class="cell"><div class="num">4</div></div>
+              <div class="cell"><div class="num">5</div></div><div class="cell"><div class="num">6</div></div><div class="cell"><div class="num">7</div></div>
+              <div class="cell"><div class="num">8</div></div><div class="cell"><div class="num">9</div></div><div class="cell"><div class="num">10</div></div>
+              <div class="cell"><div class="num">11</div></div><div class="cell"><div class="num">12</div></div>
+              <div class="cell"><div class="num">13</div></div><div class="cell"><div class="num">14</div></div>
+              <div class="cell"><div class="num">15</div></div>
+              <div class="cell"><div class="num">16</div></div><div class="cell"><div class="num">17</div></div>
+              <div class="cell"><div class="num">18</div></div>
+              <div class="cell"><div class="num">19</div></div>
+              <div class="cell today"><div class="num">20</div></div>
+              <div class="cell"><div class="num">21</div></div>
+              <div class="cell"><div class="num">22</div></div>
+              <div class="cell"><div class="num">23</div></div>
+              <div class="cell"><div class="num">24</div></div>
+              <div class="cell"><div class="num">25</div></div>
+              <div class="cell"><div class="num">26</div></div>
+              <div class="cell"><div class="num">27</div></div>
+              <div class="cell"><div class="num">28</div></div><div class="cell"><div class="num">29</div></div><div class="cell"><div class="num">30</div></div><div class="cell"><div class="num">31</div></div>
+            </div>
+          </div>
+          <div class="cal-body" id="pcal-d">
+            <div class="day-list">
+              
+              
+            </div>
+          </div>
+        </div>
+        <div class="plist">
+          <div class="plist-head">
+            <div><h3>일잘러2026 &middot; 할일 리스트</h3><div class="sub">행사일 2026.05.20 · 전체 9건 · 행 클릭 시 세부보기/수정</div></div>
+            <div class="sortsel"><label>정렬</label>
+              <select onchange="sortList(this.value)">
+                <option value="due">마감일순</option>
+                <option value="des">담당자순(디자인)</option>
+                <option value="pmd">담당자순(PMD)</option>
+                <option value="prog">진행상황순</option>
+                <option value="urg">중요도순</option>
+              </select>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tasks">
+              <thead><tr><th>디자인구분</th><th>내용</th><th>1차시안</th><th>마감일</th><th>디자인담당</th><th>PMD담당</th><th>중요도</th><th>진행상황</th></tr></thead>
+              <tbody id="taskBody">
+                <tr data-des="김희종" data-pmd="이규리" onclick="openDetail(0)"><td><span class="dtype dt-logo">로고/키비주얼</span></td><td><div class="ttl">메인 키비주얼</div></td><td><div class="draft soon">05.19</div></td><td><div class="due soon">05.20</div></td><td><span class="who"><span class="av" style="background:var(--c-kim)"></span>김희종</span></td><td><span class="who pmd"><span class="av"></span>이규리</span></td><td><span class="urg high">높음</span></td><td><span class="prog st-prog">진행</span></td></tr>
+                <tr data-des="태성" data-pmd="한희주" onclick="openDetail(2)"><td><span class="dtype dt-print">인쇄물 &middot; 브로슈어</span></td><td><div class="ttl">행사 안내 브로슈어</div></td><td><div class="draft">05.22</div></td><td><div class="due">05.27</div></td><td><span class="who"><span class="av" style="background:var(--c-taesung)"></span>태성</span></td><td><span class="who pmd"><span class="av"></span>한희주</span></td><td><span class="urg mid">보통</span></td><td><span class="prog st-wait">대기</span></td></tr>
+                <tr data-des="우일" data-pmd="김현정" onclick="openDetail(3)"><td><span class="dtype dt-sign">사인물 &middot; 현수막</span></td><td><div class="ttl">현장 입구 현수막</div></td><td><div class="draft">05.21</div></td><td><div class="due">05.23</div></td><td><span class="who"><span class="av" style="background:var(--c-wooil)"></span>우일</span></td><td><span class="who pmd"><span class="av"></span>김현정</span></td><td><span class="urg mid">보통</span></td><td><span class="prog st-wait">대기</span></td></tr>
+                <tr data-des="김희종" data-pmd="이규리" onclick="openDetail(4)"><td><span class="dtype dt-online">온라인 &middot; 웹배너</span></td><td><div class="ttl">홈페이지 메인 배너</div></td><td><div class="draft">05.18</div></td><td><div class="due">05.26</div></td><td><span class="who"><span class="av" style="background:var(--c-kim)"></span>김희종</span></td><td><span class="who pmd"><span class="av"></span>이규리</span></td><td><span class="urg mid">보통</span></td><td><span class="prog st-review">검수</span></td></tr>
+                <tr class="done" data-des="플로우" data-pmd="김예지" onclick="openDetail(5)"><td><span class="dtype dt-online">온라인 &middot; 카드뉴스</span></td><td><div class="ttl">SNS 홍보 카드뉴스 5종</div></td><td><div class="draft">05.15</div></td><td><div class="due">05.17</div></td><td><span class="who"><span class="av" style="background:var(--c-flow)"></span>플로우</span></td><td><span class="who pmd"><span class="av"></span>김예지</span></td><td><span class="urg low">낮음</span></td><td><span class="prog st-done">완료</span></td></tr>
+                <tr data-des="태성" data-pmd="한희주" onclick="openDetail(6)"><td><span class="dtype dt-ad">광고물</span></td><td><div class="ttl">5단 신문 광고</div></td><td><div class="draft">05.20</div></td><td><div class="due">05.25</div></td><td><span class="who"><span class="av" style="background:var(--c-taesung)"></span>태성</span></td><td><span class="who pmd"><span class="av"></span>한희주</span></td><td><span class="urg mid">보통</span></td><td><span class="prog st-wait">대기</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <!-- ===== 관리 ===== -->
+      <section class="view" id="mgr">
+        <div class="view-head"><div><h2>관리</h2><p>담당자 · 제출처 · 디자인종류 · 권한 · Outlook 자동화</p></div></div>
+        <!-- Outlook 자동화 안내 -->
+        <div class="automate-card">
+          <h4><img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" style="width:16px;height:16px"> Outlook [PMD] 디자인캘린더 자동 연동 <span style="font-size:11px;color:#1a7f4b;background:#e7f6ee;padding:2px 8px;border-radius:5px;margin-left:4px">사용 중</span></h4>
+          <p class="desc">새 태스크를 <b>등록</b>하면 [PMD] 디자인캘린더에 일정이 <b>자동으로 생성</b>됩니다 (Microsoft Graph 직접 연동). 별도의 Power Automate 흐름이나 수동 버튼은 필요 없습니다.</p>
+          <p class="desc" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">⚠ 자동 생성은 <b>Calendars.ReadWrite</b> 관리자 동의가 완료돼야 동작합니다. 동의 전이면 태스크는 저장되지만 캘린더 생성은 조용히 건너뜁니다.</p>
+          <div style="font-size:12px;font-weight:700;color:var(--outlook);margin:14px 0 8px">담당자별 카테고리 색상</div>
+          <div class="color-map">
+            <span class="color-tag"><span style="width:10px;height:10px;border-radius:50%;background:var(--c-kim);display:inline-block"></span>김희종 → 파랑</span>
+            <span class="color-tag"><span style="width:10px;height:10px;border-radius:50%;background:var(--c-taesung);display:inline-block"></span>태성 → 초록</span>
+            <span class="color-tag"><span style="width:10px;height:10px;border-radius:50%;background:var(--c-wooil);display:inline-block"></span>우일 → 주황</span>
+            <span class="color-tag"><span style="width:10px;height:10px;border-radius:50%;background:var(--c-flow);display:inline-block"></span>플로우 → 보라</span>
+          </div>
+        </div>
+        <div class="mgr-grid">
+          <!-- 디자인담당 -->
+          <div class="mgr-card">
+            <h3>디자인담당</h3><div class="d">디자인 작업 담당 · 색상 지정</div>
+            <div class="mgr-item"><span class="sw" style="background:var(--c-kim)"></span>김희종<span class="tg" style="margin-left:6px">PMD</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인담당','김희종')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('김희종')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--c-taesung)"></span>태성<span class="tg" style="margin-left:6px">인쇄물</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인담당','태성')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('태성')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--c-wooil)"></span>우일<span class="tg" style="margin-left:6px">인쇄물</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인담당','우일')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('우일')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--c-flow)"></span>플로우<span class="tg" style="margin-left:6px">종합</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인담당','플로우')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('플로우')" title="삭제">🗑</button></div></div>
+            <button class="mgr-add" onclick="mgrAdd('디자인담당')">＋ 디자인담당 추가</button>
+          </div>
+          <!-- PMD담당 -->
+          <div class="mgr-card">
+            <h3>PMD담당</h3><div class="d">업무 담당 (PMD 내부) · 삭제확인 = 관리자 권한</div>
+            <div class="mgr-item"><span class="sw" style="background:var(--p-kyuri)"></span>이규리<span class="perm-badge" style="margin-left:6px">관리자</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('PMD담당','이규리')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('이규리')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--p-heeju)"></span>한희주<span class="perm-badge" style="margin-left:6px">관리자</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('PMD담당','한희주')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('한희주')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--p-hyunjung)"></span>김현정<span class="perm-badge" style="margin-left:6px">관리자</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('PMD담당','김현정')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('김현정')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--p-yeji)"></span>김예지<div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('PMD담당','김예지')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('김예지')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--p-blue)"></span>김다예<div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('PMD담당','김다예')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('김다예')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--p-blue)"></span>이소현<div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('PMD담당','이소현')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('이소현')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--p-blue)"></span>최유정<div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('PMD담당','최유정')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('최유정')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--p-blue)"></span>박재환<div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('PMD담당','박재환')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('박재환')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="sw" style="background:var(--p-blue)"></span>김남순<span class="perm-badge" style="margin-left:6px">관리자</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('PMD담당','김남순')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('김남순')" title="삭제">🗑</button></div></div>
+            <button class="mgr-add" onclick="mgrAdd('PMD담당')">＋ PMD담당 추가</button>
+          </div>
+          <!-- 제출처 -->
+          <div class="mgr-card">
+            <h3>제출처</h3><div class="d">구분별 제출처 · 이름/색상 수정 가능</div>
+            <div class="mgr-item"><span class="dtype dt-online">PMD내부</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('제출처','PMD내부')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('PMD내부')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="dtype dt-ad">발주처</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('제출처','발주처')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('발주처')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="dtype dt-print">광고매체</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('제출처','광고매체')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('광고매체')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="dtype dt-logo">협력사 전달</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('제출처','협력사 전달')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('협력사 전달')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="dtype dt-etc">기타</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('제출처','기타')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('기타')" title="삭제">🗑</button></div></div>
+            <button class="mgr-add" onclick="mgrAdd('제출처')">＋ 제출처 추가</button>
+          </div>
+          <!-- 권한 -->
+          <div class="mgr-card">
+            <h3>권한</h3><div class="d">작성·수정 / 삭제 권한자 지정</div>
+            <div class="mgr-item">작성 · 수정<span class="role-badge" style="margin-left:auto">전 직원</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('권한','작성·수정')" title="수정">✏</button></div></div>
+            <div class="mgr-item">삭제 확인<span class="perm-badge" style="margin-left:auto">이규리·한희주·김현정·김남순</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('권한','삭제확인')" title="수정">✏</button></div></div>
+            <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;line-height:1.6;padding:10px;background:var(--bg);border-radius:8px">누구나 태스크를 만들고 수정할 수 있으나, 삭제는 관리자 확인이 필요합니다.</div>
+          </div>
+          <!-- 디자인종류 -->
+          <div class="mgr-card" style="grid-column:1/-1">
+            <h3>디자인종류</h3><div class="d">대분류 · 소분류 · 수정/삭제 가능</div>
+            <div class="mgr-item"><span class="dtype dt-logo">로고/키비주얼</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','로고/키비주얼')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('로고/키비주얼')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="dtype dt-print">인쇄물</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','인쇄물')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('인쇄물')" title="삭제">🗑</button></div></div>
+            <div class="sub-items-wrap"><span class="sub-chip">브로슈어<span class="sub-del">✕</span></span><span class="sub-chip">5단광고<span class="sub-del">✕</span></span><span class="sub-chip">포스터<span class="sub-del">✕</span></span><span class="sub-chip">초청장<span class="sub-del">✕</span></span><span class="sub-chip">현장리플렛<span class="sub-del">✕</span></span><span class="sub-chip">이벤트지<span class="sub-del">✕</span></span><span class="sub-chip" onclick="mgrAdd('인쇄물 소분류')" style="border-style:dashed;color:var(--accent)">＋ 소분류 추가</span></div>
+            <div class="mgr-item"><span class="dtype dt-sign">사인물</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','사인물')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('사인물')" title="삭제">🗑</button></div></div>
+            <div class="sub-items-wrap"><span class="sub-chip">현수막<span class="sub-del">✕</span></span><span class="sub-chip">배너<span class="sub-del">✕</span></span><span class="sub-chip" onclick="mgrAdd('사인물 소분류')" style="border-style:dashed;color:var(--accent)">＋ 소분류 추가</span></div>
+            <div class="mgr-item"><span class="dtype dt-online">온라인홍보물</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','온라인홍보물')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('온라인홍보물')" title="삭제">🗑</button></div></div>
+            <div class="sub-items-wrap"><span class="sub-chip">홈페이지<span class="sub-del">✕</span></span><span class="sub-chip">뉴스레터<span class="sub-del">✕</span></span><span class="sub-chip">웹배너<span class="sub-del">✕</span></span><span class="sub-chip">카드뉴스<span class="sub-del">✕</span></span><span class="sub-chip">초청장<span class="sub-del">✕</span></span><span class="sub-chip" onclick="mgrAdd('온라인 소분류')" style="border-style:dashed;color:var(--accent)">＋ 소분류 추가</span></div>
+            <div class="mgr-item"><span class="dtype dt-ad">광고물</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','광고물')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('광고물')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="dtype dt-sys">시스템/장치</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','시스템/장치')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('시스템/장치')" title="삭제">🗑</button></div></div>
+            <div class="mgr-item"><span class="dtype dt-etc">기타</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('디자인종류','기타')" title="수정">✏</button><button class="mgr-icon-btn del" onclick="mgrDel('기타')" title="삭제">🗑</button></div></div>
+            <button class="mgr-add" onclick="mgrAdd('디자인종류')">＋ 디자인종류 추가</button>
+          </div>
+          <div class="mgr-card" style="grid-column:1/-1">
+            <h3>프로젝트(행사)</h3>
+            <div class="d">순서 변경 · 사이드바 표시/숨김 관리</div>
+            <div id="projList">
+              <div class="mp-row" data-pj="일잘러2026">
+                <div class="ord-btns"><button class="ord-btn" onclick="movePj(this,'up')">▲</button><button class="ord-btn" onclick="movePj(this,'down')">▼</button></div>
+                <span class="drag-handle">⠿⠿</span>
+                <span class="mp-name" style="flex:1">일잘러2026</span>
+                <button class="mp-toggle on" onclick="toggleHide(this,'일잘러2026')">표시중</button>
+              </div>
+              <div class="mp-row" data-pj="1인가구2026">
+                <div class="ord-btns"><button class="ord-btn" onclick="movePj(this,'up')">▲</button><button class="ord-btn" onclick="movePj(this,'down')">▼</button></div>
+                <span class="drag-handle">⠿⠿</span>
+                <span class="mp-name" style="flex:1">1인가구2026</span>
+                <button class="mp-toggle on" onclick="toggleHide(this,'1인가구2026')">표시중</button>
+              </div>
+              <div class="mp-row" data-pj="오티즘2026">
+                <div class="ord-btns"><button class="ord-btn" onclick="movePj(this,'up')">▲</button><button class="ord-btn" onclick="movePj(this,'down')">▼</button></div>
+                <span class="drag-handle">⠿⠿</span>
+                <span class="mp-name" style="flex:1">오티즘2026</span>
+                <button class="mp-toggle on" onclick="toggleHide(this,'오티즘2026')">표시중</button>
+              </div>
+              <div class="mp-row" data-pj="제안서">
+                <div class="ord-btns"><button class="ord-btn" onclick="movePj(this,'up')">▲</button><button class="ord-btn" onclick="movePj(this,'down')">▼</button></div>
+                <span class="drag-handle">⠿⠿</span>
+                <span class="mp-name" style="flex:1">제안서</span>
+                <button class="mp-toggle on" onclick="toggleHide(this,'제안서')">표시중</button>
+              </div>
+              <div class="mp-row" data-pj="PMD">
+                <div class="ord-btns"><button class="ord-btn" onclick="movePj(this,'up')">▲</button><button class="ord-btn" onclick="movePj(this,'down')">▼</button></div>
+                <span class="drag-handle">⠿⠿</span>
+                <span class="mp-name" style="flex:1">PMD</span>
+                <button class="mp-toggle on" onclick="toggleHide(this,'PMD')">표시중</button>
+              </div>
+              <div class="mp-row" data-pj="기타">
+                <div class="ord-btns"><button class="ord-btn" onclick="movePj(this,'up')">▲</button><button class="ord-btn" onclick="movePj(this,'down')">▼</button></div>
+                <span class="drag-handle">⠿⠿</span>
+                <span class="mp-name" style="flex:1">기타</span>
+                <button class="mp-toggle on" onclick="toggleHide(this,'기타')">표시중</button>
+              </div>
+              <div class="mp-row" data-pj="2025송년행사" style="opacity:.5">
+                <div class="ord-btns"><button class="ord-btn" onclick="movePj(this,'up')">▲</button><button class="ord-btn" onclick="movePj(this,'down')">▼</button></div>
+                <span class="drag-handle">⠿⠿</span>
+                <span class="mp-name" style="flex:1">2025송년행사 <span style="font-size:11px;color:var(--ink-soft)">· 종료</span></span>
+                <button class="mp-toggle" onclick="toggleHide(this,'2025송년행사')">숨김</button>
+              </div>
+            </div>
+            <button class="mgr-add">＋ 프로젝트 추가</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<!-- 사용자 선택 모달 -->
+<div class="umodal-bg" id="userModal">
+  <div class="umodal" style="max-width:360px;text-align:center">
+    <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;margin:0 auto 16px;font-size:26px">🔐</div>
+    <h3 style="margin-bottom:6px">PMD 디자인 워크스페이스</h3>
+    <p style="margin-bottom:24px">Microsoft 계정으로 로그인하면<br>태스크 추가·수정이 가능합니다.</p>
+    <button id="btnMsalLogin" class="uconfirm" style="background:#0078d4;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;font-size:14px">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" style="width:18px;height:18px;filter:brightness(10)"> Microsoft 계정으로 로그인
+    </button>
+    <p style="font-size:11.5px;color:var(--ink-soft);margin-top:8px">@thepmd.co.kr 계정만 접근 가능합니다</p>
+  </div>
+</div>
+<!-- 세부 보기 / 수정 모달 -->
+<div class="modal-bg" id="detailModal" onclick="if(event.target===this)closeDetail()">
+  <div class="modal">
+    <div class="mhead">
+      <div><h3 id="dTitle">메인 키비주얼</h3><p class="mhint" id="dProj">일잘러2026 · 세부보기 / 수정</p></div>
+      <button class="del-btn" onclick="tryDelete()">삭제</button>
+    </div>
+    <div class="field"><label>내용</label><input type="text" id="dName" value="메인 키비주얼"></div>
+    <div class="field-grid">
+      <div class="field"><label>1차시안</label><input type="date" id="dDraft" value="2026-05-19"></div>
+      <div class="field"><label>마감일</label><input type="date" id="dDue" value="2026-05-20"></div>
+    </div>
+    <div class="field"><label>디자인종류</label>
+      <select id="dType">
+        <option>로고/키비주얼</option>
+        <optgroup label="인쇄물"><option>인쇄물 · 브로슈어</option><option>인쇄물 · 5단광고</option><option>인쇄물 · 포스터</option><option>인쇄물 · 초청장</option><option>인쇄물 · 현장리플렛</option><option>인쇄물 · 이벤트지</option><option>인쇄물 · 기타</option></optgroup>
+        <optgroup label="사인물"><option>사인물 · 현수막</option><option>사인물 · 배너</option><option>사인물 · 기타</option></optgroup>
+        <optgroup label="온라인홍보물"><option>온라인 · 홈페이지</option><option>온라인 · 뉴스레터</option><option>온라인 · 웹배너</option><option>온라인 · 카드뉴스</option><option>온라인 · 초청장</option><option>온라인 · 기타</option></optgroup>
+        <option>광고물</option><option>시스템/장치</option><option>기타</option>
+      </select>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>디자인담당</label><select id="dDes"><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option></select></div>
+      <div class="field"><label>PMD담당</label><select id="dPmd"><option>이규리</option><option>한희주</option><option>김현정</option><option>김예지</option><option>김다예</option><option>이소현</option><option>최유정</option><option>박재환</option><option>김남순</option></select></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>제출처</label><select id="dDest"><option>—</option><option>PMD내부</option><option>발주처</option><option>광고매체</option><option>협력사 전달</option><option>기타</option></select></div>
+      <div class="field"><label>중요도</label>
+        <div class="urg-wrap">
+          <span class="urg-icon" id="dUrgIcon" style="color:#94a3b8">●</span>
+          <select id="dUrg" onchange="updateUrgIcon(this,'dUrgIcon')">
+            <option value="긴급">긴급</option>
+            <option value="높음">높음</option>
+            <option value="보통" selected>보통</option>
+            <option value="낮음">낮음</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>진행상황</label><select id="dProgSel"><option>대기</option><option>진행</option><option>검수</option><option>완료</option></select></div>
+    <div class="field"><label>시안 링크 <span class="opt">OneDrive</span></label><input type="text" id="dLink" placeholder="OneDrive 파일 링크"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeDetail()">닫기</button>
+      
+      <button class="btn btn-save" onclick="saveDetail()">수정 저장</button>
+    </div>
+    <div class="audit" id="dAudit">
+      <div class="arow"><span>작성자 · 김희종</span><span>작성일 · 2026.05.10</span></div>
+      <div class="arow mod" id="dMod"><span>최근 수정 · ―</span><span>―</span></div>
+    </div>
+  </div>
+</div>
+<!-- 새 태스크 모달 -->
+<div class="modal-bg" id="newModal" onclick="if(event.target===this)closeNew()">
+  <div class="modal">
+    <h3>새 태스크</h3>
+    <p class="mhint">필수 항목만 채우면 바로 등록됩니다</p>
+    <div class="req-section">
+      <div class="sec-label">필수</div>
+      <div class="field"><label>내용 <span class="req">*</span></label><input type="text" placeholder="예: 메인 키비주얼 디자인"></div>
+      <div class="field-grid">
+        <div class="field"><label>1차시안 <span class="req">*</span></label><input type="date"></div>
+        <div class="field"><label>마감일 <span class="req">*</span></label><input type="date"></div>
+      </div>
+      <div class="field-grid" style="margin-bottom:0">
+        <div class="field" style="margin-bottom:0"><label>프로젝트 <span class="req">*</span></label><select><option>일잘러2026</option><option>1인가구2026</option><option>오티즘2026</option><option>제안서</option><option>PMD</option><option>기타</option></select></div>
+        <div class="field" style="margin-bottom:0"><label>디자인담당 <span class="req">*</span></label><select><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option></select></div>
+      </div>
+    </div>
+    <div class="opt-label">선택 (나중에 채워도 됨)</div>
+    <div class="field"><label>PMD담당 <span class="opt">선택</span></label><select><option>—</option><option>이규리</option><option>한희주</option><option>김현정</option><option>김예지</option><option>김다예</option><option>이소현</option><option>최유정</option><option>박재환</option><option>김남순</option></select></div>
+    <div class="field"><label>디자인종류 <span class="opt">선택</span></label>
+      <select>
+        <option>—</option><option>로고/키비주얼</option>
+        <optgroup label="인쇄물"><option>인쇄물 · 브로슈어</option><option>인쇄물 · 5단광고</option><option>인쇄물 · 포스터</option><option>인쇄물 · 초청장</option><option>인쇄물 · 현장리플렛</option><option>인쇄물 · 이벤트지</option><option>인쇄물 · 기타</option></optgroup>
+        <optgroup label="사인물"><option>사인물 · 현수막</option><option>사인물 · 배너</option><option>사인물 · 기타</option></optgroup>
+        <optgroup label="온라인홍보물"><option>온라인 · 홈페이지</option><option>온라인 · 뉴스레터</option><option>온라인 · 웹배너</option><option>온라인 · 카드뉴스</option><option>온라인 · 초청장</option><option>온라인 · 기타</option></optgroup>
+        <option>광고물</option><option>시스템/장치</option><option>기타</option>
+      </select>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>제출처 <span class="opt">선택</span></label><select><option>—</option><option>PMD내부</option><option>발주처</option><option>광고매체</option><option>협력사 전달</option><option>기타</option></select></div>
+      <div class="field"><label>중요도 <span class="opt">기본 보통</span></label>
+        <div class="urg-wrap">
+          <span class="urg-icon" id="newUrgIcon" style="color:#94a3b8">●</span>
+          <select onchange="updateUrgIcon(this,'newUrgIcon')">
+            <option value="긴급">긴급</option>
+            <option value="높음">높음</option>
+            <option value="보통" selected>보통</option>
+            <option value="낮음">낮음</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>시안 링크 <span class="opt">선택 · OneDrive</span></label><input type="text" placeholder="OneDrive 파일 링크 붙여넣기"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeNew()">취소</button>
+      <button class="btn btn-save" onclick="registerNewTask()">등록</button>
+    </div>
+    <div class="audit"><div class="arow" id="newAuditRow"><span id="newAuditMaker">작성자 · (로그인 필요)</span><span id="newAuditDate"></span></div></div>
+  </div>
+</div>
+<script>
+/* ====== SharePoint / MSAL 연동 ====== */
+var MSC={
+  clientId:'144d0fbb-3d45-4739-be78-60a32efb6088',
+  tenantId:'9452cae0-9434-43ed-8edb-dccd26f181f0',
+  siteHost:'thepmd.sharepoint.com',
+  sitePath:'/sites/msteams_5ffa29',
+  listName:'디자인_태스크',
+  scopes:['https://graph.microsoft.com/Sites.ReadWrite.All','https://graph.microsoft.com/Calendars.ReadWrite']
+};
+var EMAIL_MAP={
+  'gr.lee@thepmd.co.kr':{name:'이규리',role:'PMD · 관리자',color:'var(--p-kyuri)'},
+  'hj.han@thepmd.co.kr':{name:'한희주',role:'PMD · 관리자',color:'var(--p-heeju)'},
+  'hj.kim@thepmd.co.kr':{name:'김현정',role:'PMD · 관리자',color:'var(--p-hyunjung)'},
+  'yj.kim@thepmd.co.kr':{name:'김예지',role:'PMD 담당',color:'var(--p-yeji)'},
+  'dy.kim@thepmd.co.kr':{name:'김다예',role:'PMD 담당',color:'var(--p-blue)'},
+  'sh.lee@thepmd.co.kr':{name:'이소현',role:'PMD 담당',color:'var(--p-blue)'},
+  'yj.choi@thepmd.co.kr':{name:'최유정',role:'PMD 담당',color:'var(--p-blue)'},
+  'jh.park@thepmd.co.kr':{name:'박재환',role:'PMD 담당',color:'var(--p-blue)'},
+  'ns.kim@thepmd.co.kr':{name:'김남순',role:'PMD · 관리자',color:'var(--p-blue)'},
+};
+let msalApp=null, _spSiteId=null, _spListId=null, IS_GUEST=false;
+function guestLogin(){
+  IS_GUEST=true;
+  CURRENT_USER={name:'Guest',role:'읽기 전용',color:'var(--ink-soft)'};
+  updateUserBar(CURRENT_USER);
+  document.getElementById('userModal').classList.add('hidden');
+}
+
+async function initMSAL(){
+  if(!window.msal){console.warn('MSAL not loaded');return;}
+  msalApp=new msal.PublicClientApplication({
+    auth:{clientId:MSC.clientId,authority:`https://login.microsoftonline.com/${MSC.tenantId}`,redirectUri:window.location.origin},
+    cache:{cacheLocation:'sessionStorage'}
+  });
+  await msalApp.initialize();
+  try{
+    const r=await msalApp.handleRedirectPromise();
+    if(r) await onMSALLogin(r.account);
+  }catch(e){console.error('MSAL redirect:',e);}
+  // 남아있는 stale 상호작용 플래그 정리 (interaction_in_progress 방지)
+  try{Object.keys(sessionStorage).filter(k=>k.indexOf('interaction.status')>-1).forEach(k=>sessionStorage.removeItem(k));}catch(e){}
+  const accs=msalApp.getAllAccounts();
+  if(accs.length) await onMSALLogin(accs[0]);
+}
+async function msalSignIn(){
+  if(!msalApp){alert('MSAL 초기화 중입니다. 잠시 후 다시 시도하세요.');return;}
+  try{await msalApp.loginRedirect({scopes:MSC.scopes});}
+  catch(e){try{const r=await msalApp.loginPopup({scopes:MSC.scopes});await onMSALLogin(r.account);}catch(e2){alert('로그인 실패: '+e2.message);}}
+}
+async function onMSALLogin(account){
+  const email=(account.username||'').toLowerCase();
+  const info=EMAIL_MAP[email]||{name:account.name||email,role:'PMD 담당',color:'var(--p-blue)'};
+  CURRENT_USER=info;
+  updateUserBar(info);
+  try{localStorage.setItem('pmd_current_user',JSON.stringify(info));}catch(e){}
+  document.getElementById('userModal').classList.add('hidden');
+  document.getElementById('mainLayout').style.display='flex';
+  await loadSPTasks();
+  loadCalendarEvents(); // 디자인캘린더 비동기 로드
+}
+async function getToken(){
+  if(!msalApp) return null;
+  const accs=msalApp.getAllAccounts();
+  if(!accs.length) return null;
+  try{const r=await msalApp.acquireTokenSilent({scopes:MSC.scopes,account:accs[0]});return r.accessToken;}
+  catch(e){await msalApp.acquireTokenRedirect({scopes:MSC.scopes});return null;}
+}
+async function gFetch(path,method='GET',body=null){
+  const token=await getToken();
+  if(!token) throw new Error('로그인이 필요합니다');
+  const headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'};
+  if(method!=='GET'&&method!=='DELETE') headers['Prefer']='return=representation'; // 쓰기 요청에만 (GET에 붙이면 405)
+  const opts={method,headers};
+  if(body) opts.body=JSON.stringify(body);
+  const res=await fetch('https://graph.microsoft.com/v1.0'+path,opts);
+  if(!res.ok){const t=await res.text();throw new Error(`Graph ${method} ${res.status}: ${t}`);}
+  if(method==='DELETE') return null;
+  const txt=await res.text();return txt?JSON.parse(txt):null;
+}
+async function initSPIds(){
+  if(_spSiteId&&_spListId) return;
+  const site=await gFetch(`/sites/${MSC.siteHost}:${MSC.sitePath}`);
+  _spSiteId=site.id;
+  const lists=await gFetch(`/sites/${_spSiteId}/lists?$filter=displayName eq '${MSC.listName}'`);
+  if(!lists.value.length) throw new Error(`'${MSC.listName}' 목록을 찾을 수 없습니다`);
+  _spListId=lists.value[0].id;
+}
+function spToTask(item){
+  const f=item.fields||{};
+  const getDate=v=>(v||'').split('T')[0];
+  return{_spId:item.id,n:f.Title||'',p:f['프로젝트']||'',draft:getDate(f['1차시안']||f['x_005f1차시안']||''),due:getDate(f['마감일']||''),type:f['디자인종류']||'',des:f['디자인담당']||'',pmd:f['PMD담당']||'',dest:f['제출처']||'',urg:f['중요도']||'보통',prog:f['진행상황']||'대기',made:f['작성자']||'',madeAt:f['작성일']||''};
+}
+function taskToFields(t){
+  const f={'Title':t.n,'진행상황':t.prog};
+  if(t.p) f['프로젝트']=t.p;
+  if(t.type) f['디자인종류']=t.type;
+  if(t.draft) f['1차시안']=t.draft+'T00:00:00Z';
+  if(t.due) f['마감일']=t.due+'T00:00:00Z';
+  if(t.des) f['디자인담당']=t.des;
+  if(t.pmd) f['PMD담당']=t.pmd;
+  if(t.dest) f['제출처']=t.dest;
+  if(t.urg) f['중요도']=t.urg;
+  if(t.made) f['작성자']=t.made;
+  if(t.madeAt) f['작성일']=t.madeAt;
+  return f;
+}
+/* ===== [PMD] 디자인캘린더 연동 ===== */
+var DESIGN_CAL_OWNER='gr.lee@thepmd.co.kr';
+var _desCalId=null;
+async function resolveDesCal(){
+  if(_desCalId) return _desCalId;
+  try{ const cals=await gFetch('/users/'+DESIGN_CAL_OWNER+'/calendars?$select=id,name'); const c=(cals.value||[]).find(x=>x.name.includes('디자인캘린더')||x.name.includes('[PMD]')); if(c)_desCalId=c.id; }catch(e){ console.warn('resolveDesCal:',e); }
+  return _desCalId;
+}
+function _calBody(t){
+  const desName=(t.des||'').split(' (')[0]; const date=t.due||t.draft;
+  return {subject:'[디자인] '+t.n+(desName?' · '+desName:''), start:{dateTime:(date||'2026-01-01')+'T09:00:00',timeZone:'Asia/Seoul'}, end:{dateTime:(date||'2026-01-01')+'T18:00:00',timeZone:'Asia/Seoul'}, body:{contentType:'HTML',content:'프로젝트: '+(t.p||'')+'<br>디자인: '+(t.des||'')+'<br>PMD: '+(t.pmd||'')+'<br>진행: '+(t.prog||'')}};
+}
+async function createCalEventForTask(t){
+  const id=await resolveDesCal(); if(!id || !(t.due||t.draft)) return null;
+  return gFetch('/users/'+DESIGN_CAL_OWNER+'/calendars/'+id+'/events','POST',_calBody(t));
+}
+async function updateCalEventForTask(t){
+  if(!t._calId){ try{const ce=await createCalEventForTask(t); if(ce)t._calId=ce.id;}catch(e){console.warn('cal create(upd):',e);} return; }
+  try{ return await gFetch('/users/'+DESIGN_CAL_OWNER+'/events/'+t._calId,'PATCH',_calBody(t)); }
+  catch(e){ console.warn('cal update:',e); }
+}
+async function deleteCalEventForTask(t){
+  if(!t || !t._calId) return;
+  try{ await gFetch('/users/'+DESIGN_CAL_OWNER+'/events/'+t._calId,'DELETE'); }
+  catch(e){ console.warn('cal delete:',e); }
+}
+function setCalSync(state,info){
+  const el=document.getElementById('calSyncStatus'); if(!el) return;
+  el.classList.remove('ok','err','loading');
+  if(state==='loading'){el.classList.add('loading');el.innerHTML='<span class="dot"></span>Outlook [PMD] 디자인캘린더 연동 중…';}
+  else if(state==='ok'){
+    let email=''; try{const a=msalApp.getAllAccounts()[0]; if(a)email=a.username;}catch(e){}
+    el.classList.add('ok');
+    el.innerHTML='<span class="dot"></span>'+(email?email+' · ':'')+'[PMD] 디자인캘린더 실시간 연동 중 · '+info+'개 일정';
+  }
+  else{el.classList.add('err');el.innerHTML='<span class="dot"></span>Outlook 캘린더 연동 안됨'+(info?' — '+info:'');}
+}
+async function loadCalendarEvents(){
+  try{
+    setCalSync('loading');
+    // 캘린더 목록에서 디자인캘린더 찾기
+    const cals=await gFetch('/users/'+DESIGN_CAL_OWNER+'/calendars?$select=id,name');
+    const desCal=cals.value.find(c=>c.name.includes('디자인캘린더')||c.name.includes('[PMD]'));
+    if(!desCal){console.warn('[PMD] 디자인캘린더를 찾을 수 없습니다');setCalSync('err','캘린더를 찾을 수 없습니다');return;}
+    _desCalId=desCal.id;
+
+    // 현재 표시 월 이벤트 가져오기
+    const now=new Date(2026,4,1); // 2026년 5월 기준
+    const y=now.getFullYear(), m=now.getMonth();
+    const start=new Date(y,m,1).toISOString();
+    const end=new Date(y,m+1,0,23,59,59).toISOString();
+
+    const evts=await gFetch(`/users/${DESIGN_CAL_OWNER}/calendars/${desCal.id}/events?$filter=start/dateTime ge '${start}' and start/dateTime le '${end}'&$select=subject,start,end,categories&$orderby=start/dateTime&$top=50`);
+
+    // 그리드는 TASKS 기준(renderCalViews)이 렌더. 여기선 Outlook 동기화 개수/상태만 표시.
+    setCalSync('ok', evts.value.length);
+  }catch(e){
+    console.error('캘린더 연동 실패:',e);
+    setCalSync('err','다시 로그인이 필요할 수 있습니다');
+  }
+}
+
+async function loadSPTasks(){
+  try{
+    await initSPIds();
+    const tbody=document.getElementById('taskBody');
+    if(tbody) tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--ink-soft)">🔄 SharePoint에서 불러오는 중...</td></tr>';
+    const resp=await gFetch(`/sites/${_spSiteId}/lists/${_spListId}/items?expand=fields&$top=500&$orderby=createdDateTime`);
+    TASKS.length=0;
+    (resp.value||[]).forEach(item=>TASKS.push(spToTask(item)));
+    const ap=document.querySelector('.sub-item.active');
+    if(ap) renderTaskList(ap.dataset.pj);
+    refreshData();
+  }catch(e){console.error('loadSPTasks:',e);alert('SharePoint 로드 실패:\n'+e.message);}
+}
+async function createSPTask(t){
+  await initSPIds();
+  return gFetch(`/sites/${_spSiteId}/lists/${_spListId}/items`,'POST',{fields:taskToFields(t)});
+}
+async function updateSPTask(spId,t){
+  await initSPIds();
+  return gFetch(`/sites/${_spSiteId}/lists/${_spListId}/items/${spId}/fields`,'PATCH',taskToFields(t));
+}
+async function deleteSPTask(spId){
+  await initSPIds();
+  return gFetch(`/sites/${_spSiteId}/lists/${_spListId}/items/${spId}`,'DELETE');
+}
+/* ====== 새 태스크 등록 ====== */
+async function registerNewTask(){
+  if(IS_GUEST){alert('Guest는 태스크를 추가할 수 없습니다.\nMicrosoft 계정으로 로그인하세요.');closeNew();return;}
+  const modal=document.getElementById('newModal');
+  const name=modal.querySelector('input[type="text"]').value.trim();
+  const dates=modal.querySelectorAll('input[type="date"]');
+  const sels=modal.querySelectorAll('select');
+  if(!name){alert('내용을 입력하세요.');return;}
+  const now=new Date();
+  const me=CURRENT_USER?CURRENT_USER.name:'(미설정)';
+  const nowStr=now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0');
+  const t={n:name,p:sels[0]?.value||'기타',draft:dates[0]?.value||'',due:dates[1]?.value||'',type:sels[2]?.value||'',des:sels[1]?.value||'',pmd:sels[3]?.value||'',dest:sels[4]?.value||'',urg:sels[5]?.value||'보통',prog:'대기',made:me,madeAt:nowStr};
+  TASKS.push(t);
+  closeNew();
+  const ap=document.querySelector('.sub-item.active');
+  if(ap&&t.p===ap.dataset.pj) renderTaskList(t.p);
+  refreshData();
+  try{const r=await createSPTask(t);t._spId=r.id;}
+  catch(e){alert('SharePoint 저장 실패:\n'+e.message);}
+  try{const ce=await createCalEventForTask(t); if(ce){t._calId=ce.id;} await loadCalendarEvents();}
+  catch(e){console.warn('캘린더 자동 연동 실패:',e);}
+}
+
+var TASKS=[];
+/* 프로젝트별 주간 캘린더 이벤트 (May 18-24 기준주) */
+var PROJ_EVENTS={};
+var DELETERS=['이규리','한희주','김현정','김남순'];
+let curIdx=0;
+/* 현재 사용자 */
+let _selUser=null; // 모달에서 임시 선택
+let CURRENT_USER=null;
+function loadUser(){
+  try{
+    const ver=localStorage.getItem('pmd_ver');
+    if(ver!=='msal1'){localStorage.removeItem('pmd_current_user');localStorage.setItem('pmd_ver','msal1');}
+    const s=localStorage.getItem('pmd_current_user');
+    if(s) CURRENT_USER=JSON.parse(s);
+  }catch(e){}
+  if(CURRENT_USER){
+    updateUserBar(CURRENT_USER);
+    document.getElementById('userModal').classList.add('hidden'); // 이미 로그인 → 모달 숨김
+    document.getElementById('mainLayout').style.display='flex';   // 메인 화면 표시 (빈 화면 방지)
+  }
+  // 로그인 안 됐으면 모달은 CSS 기본값으로 이미 보임
+}
+// ===== 모든 버튼을 addEventListener로 바인딩 =====
+document.addEventListener('DOMContentLoaded',function(){
+  // 사용자바 클릭
+  var ub=document.getElementById('userBar');
+  if(ub) ub.addEventListener('click', openUserPicker);
+
+  // Microsoft 로그인 버튼
+  var btnMs=document.getElementById('btnMsalLogin');
+  if(btnMs) btnMs.addEventListener('click', msalSignIn);
+
+  // Guest 버튼
+  var btnG=document.getElementById('btnGuestLogin');
+  if(btnG) btnG.addEventListener('click', guestLogin);
+
+  // 삭제 버튼
+  var delBtn=document.querySelector('.del-btn');
+  if(delBtn) delBtn.addEventListener('click', tryDelete);
+
+  // 새 태스크 등록 버튼
+  document.querySelectorAll('.btn-save').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(this.closest('#detailModal')) saveDetail();
+      else if(this.closest('#newModal')) registerNewTask();
+    });
+  });
+
+  // 모달 배경 클릭으로 닫기
+  var dm=document.getElementById('detailModal');
+  if(dm) dm.addEventListener('click',function(e){if(e.target===this)closeDetail();});
+  var nm=document.getElementById('newModal');
+  if(nm) nm.addEventListener('click',function(e){if(e.target===this)closeNew();});
+});
+function openUserPicker(){
+  // 현재 선택 표시
+  document.querySelectorAll('.upick').forEach(b=>{
+    b.classList.toggle('selected', CURRENT_USER && b.dataset.name===CURRENT_USER.name);
+  });
+  _selUser = CURRENT_USER;
+  document.getElementById('userModal').classList.remove('hidden');
+}
+function selectUser(btn){
+  document.querySelectorAll('.upick').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _selUser={name:btn.dataset.name, role:btn.dataset.role, color:btn.dataset.color};
+}
+function confirmUser(){
+  if(!_selUser){alert('사용자를 선택하세요.');return;}
+  CURRENT_USER=_selUser;
+  try{localStorage.setItem('pmd_current_user',JSON.stringify(CURRENT_USER));}catch(e){}
+  updateUserBar(CURRENT_USER);
+  document.getElementById('userModal').classList.add('hidden');
+}
+function updateUserBar(u){
+  document.getElementById('userName').textContent=u.name;
+  document.getElementById('userRole').textContent=u.role;
+  document.getElementById('userAv').textContent=u.name[0];
+  // CSS 변수는 직접 못 쓰므로 실제 색 변환
+  const colorMap={'var(--p-kyuri)':'#7aabf8','var(--p-heeju)':'#9a87e8','var(--p-hyunjung)':'#3fc0e8','var(--p-yeji)':'#2ab5d5','var(--p-blue)':'#6b97f0','var(--c-kim)':'#6aaef5','var(--c-taesung)':'#3dbf98','var(--c-wooil)':'#e8a030','var(--c-flow)':'#a87de5'};
+  document.getElementById('userAv').style.background=colorMap[u.color]||'#6b97f0';
+}
+function go(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.getElementById(v).classList.add('active');
+  document.querySelectorAll('.snav[data-v]').forEach(e=>e.classList.toggle('active',e.dataset.v===v));
+  // 프로젝트 서브메뉴 표시
+  document.getElementById('projSubNav').classList.toggle('open', v==='proj');
+  if(v==='cal') renderCalViews('cal',null);
+  if(window.innerWidth<=820){closeSide()}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function toggleSide(){document.getElementById('aside').classList.toggle('open');document.getElementById('scrim').classList.toggle('open')}
+function closeSide(){document.getElementById('aside').classList.remove('open');document.getElementById('scrim').classList.remove('open')}
+function calView(m,btn){
+  ['m','w','d'].forEach(k=>document.getElementById('cal-'+k).classList.remove('active'));
+  document.getElementById('cal-'+m).classList.add('active');
+  btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  updateCalTitle('cal');
+}
+function pcalView(m,btn){
+  ['m','w','d'].forEach(k=>document.getElementById('pcal-'+k).classList.remove('active'));
+  document.getElementById('pcal-'+m).classList.add('active');
+  btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  updateCalTitle('pcal');
+}
+function selectProj(name, btn){
+  document.querySelectorAll('.sub-item').forEach(e=>e.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('projTitle').textContent = name;
+  document.querySelector('.plist-head h3').innerHTML = name + ' &middot; 할일 리스트';
+  renderTaskList(name);
+  renderProjCalendar(name);
+}
+/* 헬퍼 */
+function formatDate(d){const p=d.split('-');return p[1]+'.'+p[2];}
+function isSoon(dateStr){return (new Date(dateStr)-new Date('2026-05-30'))/86400000<=3;}
+function getTypeClass(t){
+  if(t.includes('로고')||t.includes('키비주얼'))return'dt-logo';
+  if(t.includes('인쇄물'))return'dt-print';
+  if(t.includes('사인물'))return'dt-sign';
+  if(t.includes('온라인'))return'dt-online';
+  if(t==='광고물')return'dt-ad';
+  if(t==='시스템/장치')return'dt-sys';
+  return'dt-etc';
+}
+function getDesColor(des){
+  if(des.includes('김희종'))return'var(--c-kim)';
+  if(des.includes('태성'))return'var(--c-taesung)';
+  if(des.includes('우일'))return'var(--c-wooil)';
+  if(des.includes('플로우'))return'var(--c-flow)';
+  return'var(--ink-soft)';
+}
+function renderTaskList(proj){
+  const filtered=TASKS.map((t,i)=>({...t,idx:i})).filter(t=>t.p===proj);
+  const tbody=document.getElementById('taskBody');
+  const progMap={대기:'st-wait',진행:'st-prog',검수:'st-review',완료:'st-done'};
+  const urgMap={긴급:'urgent',높음:'high',보통:'mid',낮음:'low'};
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink-soft);font-size:13px">등록된 태스크가 없습니다</td></tr>';
+    document.querySelector('.plist-head .sub').textContent='전체 0건';
+    return;
+  }
+  const active=filtered.filter(t=>t.prog!=='완료');
+  const dones=filtered.filter(t=>t.prog==='완료');
+  const rowHtml=(t)=>{
+    const isDone=t.prog==='완료';
+    const ds=isSoon(t.draft)?'soon':'';
+    const dus=isSoon(t.due)?'soon':'';
+    const last=isDone
+      ? `<td><span class="prog st-done">완료</span> <button class="restore-btn" onclick="event.stopPropagation();restoreTask(${t.idx})" title="진행중으로 복원">↑ 복원</button></td>`
+      : `<td><span class="prog ${progMap[t.prog]||'st-wait'}">${t.prog}</span></td>`;
+    return `<tr class="${isDone?'done done-row':''}" data-des="${t.des.split(' (')[0]}" data-pmd="${t.pmd}" onclick="openDetail(${t.idx})">
+      <td><span class="dtype ${getTypeClass(t.type)}">${t.type}</span></td>
+      <td><div class="ttl">${t.n}</div></td>
+      <td><div class="draft ${ds}">${formatDate(t.draft)}</div></td>
+      <td><div class="due ${dus}">${formatDate(t.due)}</div></td>
+      <td><span class="who"><span class="av" style="background:${getDesColor(t.des)}"></span>${t.des.split(' (')[0]}</span></td>
+      <td><span class="who pmd"><span class="av"></span>${t.pmd}</span></td>
+      <td><span class="urg ${urgMap[t.urg]||'mid'}">${t.urg}</span></td>
+      ${last}
+    </tr>`;
+  };
+  let html=active.map(rowHtml).join('');
+  if(dones.length){
+    html+=`<tr class="done-sep"><td colspan="8"><span class="done-toggle" onclick="toggleDone(this)"><span class="ar">▼</span> 완료한 일 <b>${dones.length}건</b></span></td></tr>`;
+    html+=dones.map(rowHtml).join('');
+  }
+  tbody.innerHTML=html;
+  document.querySelector('.plist-head .sub').textContent=`전체 ${filtered.length}건 · 행 클릭 시 세부보기/수정`;
+}
+function restoreTask(idx){
+  const t=TASKS[idx]; if(!t)return;
+  t.prog='진행';
+  const ap=document.querySelector('.sub-item.active');
+  renderTaskList(ap?ap.dataset.pj:t.p);
+  refreshData();
+  if(t._spId){ updateSPTask(t._spId,t).catch(e=>console.warn('복원 SP 업데이트 실패',e)); }
+}
+function toggleDone(el){
+  const tb=document.getElementById('taskBody');
+  const collapsed=tb.classList.toggle('done-collapsed');
+  const ar=el.querySelector('.ar'); if(ar) ar.textContent=collapsed?'▶':'▼';
+}
+function renderDashboard(){
+  const tasks=(TASKS||[]); const active=tasks.filter(t=>t.prog!=='완료');
+  const pad=n=>String(n).padStart(2,'0'); const td=new Date();
+  const todayStr=td.getFullYear()+'-'+pad(td.getMonth()+1)+'-'+pad(td.getDate());
+  const t0=new Date(todayStr+'T00:00:00'); const t7=new Date(t0); t7.setDate(t7.getDate()+7);
+  let dueToday=0,dueWeek=0,urgent=0;
+  active.forEach(t=>{ if(t.due===todayStr)dueToday++; const x=new Date(t.due+'T00:00:00'); if(!isNaN(x)&&x>=t0&&x<=t7)dueWeek++; if(t.urg==='긴급')urgent++; });
+  const kpi=document.getElementById('dashKpi');
+  if(kpi) kpi.innerHTML='<div class="kpi danger"><div class="n">'+dueToday+'</div><div class="l">오늘 마감</div></div><div class="kpi warn"><div class="n">'+dueWeek+'</div><div class="l">이번 주 마감</div></div><div class="kpi"><div class="n" style="color:var(--danger)">'+urgent+'</div><div class="l">긴급</div></div>';
+  const urg=document.getElementById('dashUrgent');
+  if(urg){ const list=tasks.map((t,i)=>({...t,idx:i})).filter(t=>t.urg==='긴급'&&t.prog!=='완료');
+    urg.innerHTML=list.length? list.map(t=>'<div class="task" style="box-shadow:none;margin-bottom:8px;cursor:pointer" onclick="openDetail('+t.idx+')"><div class="left" style="background:'+getDesColor(t.des)+'"></div><div class="body"><div class="title">'+t.p+' '+t.n+'</div><div class="who-split"><span class="seg des"><span class="tag">디자인</span><span class="av" style="background:'+getDesColor(t.des)+'"></span>'+t.des.split(' (')[0]+'</span><span class="seg pmd"><span class="tag">PMD</span><span class="av" style="background:var(--p-blue)"></span>'+t.pmd+'</span></div></div><span class="urgent-tag">긴급</span></div>').join(''):'<div style="color:var(--ink-soft);font-size:13px;padding:6px 2px">긴급 태스크가 없습니다</div>';
+  }
+  const projOrder=['일잘러2026','1인가구2026','오티즘2026','제안서','PMD','기타'];
+  const projColors={'일잘러2026':'#7baaf7','1인가구2026':'#45c4a0','오티즘2026':'#e8a030','제안서':'#f07898','PMD':'#b08cf5','기타':'#8ca8be'};
+  const pcnt={}; active.forEach(t=>{pcnt[t.p]=(pcnt[t.p]||0)+1;});
+  const projs=projOrder.slice(); Object.keys(pcnt).forEach(p=>{if(!projs.includes(p))projs.push(p);});
+  const maxP=Math.max(1,...projs.map(p=>pcnt[p]||0));
+  const pj=document.getElementById('dashProj');
+  if(pj) pj.innerHTML=projs.map(p=>{const c=pcnt[p]||0; return '<div class="bar-row"><div class="nm">'+p+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(6,Math.round(c/maxP*100))+'%;background:'+(projColors[p]||'#8ca8be')+'">'+c+'</div></div></div>';}).join('');
+  const desList=[['김희종 (PMD)','var(--c-kim)'],['태성 (인쇄물)','var(--c-taesung)'],['우일 (인쇄물)','var(--c-wooil)'],['플로우 (종합)','var(--c-flow)']];
+  const pmdList=[['이규리','var(--p-kyuri)'],['한희주','var(--p-heeju)'],['김현정','var(--p-hyunjung)'],['김예지','var(--p-yeji)'],['김다예','var(--p-blue)'],['이소현','var(--p-blue)'],['최유정','var(--p-blue)'],['박재환','var(--p-blue)'],['김남순','var(--p-blue)']];
+  const dc={},mc={}; active.forEach(t=>{dc[t.des]=(dc[t.des]||0)+1; mc[t.pmd]=(mc[t.pmd]||0)+1;});
+  const owner=document.getElementById('dashOwner');
+  if(owner){ const maxD=Math.max(1,...desList.map(x=>dc[x[0]]||0)); const maxM=Math.max(1,...pmdList.map(x=>mc[x[0]]||0));
+    const bar=(nm,col,c,mx)=>'<div class="bar-row"><div class="nm">'+nm+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(6,Math.round(c/mx*100))+'%;background:'+col+'">'+c+'</div></div></div>';
+    const dR=desList.filter(x=>dc[x[0]]).map(x=>bar(x[0],x[1],dc[x[0]],maxD)).join('');
+    const mR=pmdList.filter(x=>mc[x[0]]).map(x=>bar(x[0],x[1],mc[x[0]],maxM)).join('');
+    owner.innerHTML='<div class="sub-head"><span class="badge des">디자인담당</span><span class="line"></span></div>'+(dR||'<div style="color:var(--ink-soft);font-size:12px;padding:4px 2px">없음</div>')+'<div class="sub-head"><span class="badge pmd">PMD담당</span><span class="line"></span></div>'+(mR||'<div style="color:var(--ink-soft);font-size:12px;padding:4px 2px">없음</div>');
+  }
+}
+var calFocus={cal:new Date(), pcal:new Date()};
+var calCurProj={cal:null, pcal:null};
+function _pad2(n){return String(n).padStart(2,'0');}
+function _ymd(d){return d.getFullYear()+'-'+_pad2(d.getMonth()+1)+'-'+_pad2(d.getDate());}
+function _activeCalUnit(prefix){
+  const w=document.getElementById(prefix+'-w'), dd=document.getElementById(prefix+'-d');
+  if(w&&w.classList.contains('active'))return 'w';
+  if(dd&&dd.classList.contains('active'))return 'd';
+  return 'm';
+}
+function updateCalTitle(prefix){
+  const f=calFocus[prefix], unit=_activeCalUnit(prefix);
+  const el=document.getElementById(prefix==='cal'?'calTitle':'pcalTitle');
+  if(!el) return;
+  if(unit==='m') el.textContent=f.getFullYear()+'. '+_pad2(f.getMonth()+1);
+  else if(unit==='d'){ const dn=['일','월','화','수','목','금','토'][f.getDay()]; el.textContent=f.getFullYear()+'. '+_pad2(f.getMonth()+1)+'. '+_pad2(f.getDate())+' ('+dn+')'; }
+  else { const ws=new Date(f); ws.setDate(f.getDate()-f.getDay()); const we=new Date(ws); we.setDate(ws.getDate()+6); el.textContent=_pad2(ws.getMonth()+1)+'.'+_pad2(ws.getDate())+' – '+_pad2(we.getMonth()+1)+'.'+_pad2(we.getDate()); }
+}
+function calShift(prefix, dir){
+  const unit=_activeCalUnit(prefix), f=calFocus[prefix];
+  if(unit==='m') f.setMonth(f.getMonth()+dir);
+  else if(unit==='w') f.setDate(f.getDate()+7*dir);
+  else f.setDate(f.getDate()+dir);
+  renderCalViews(prefix);
+}
+function renderCalViews(prefix, proj){
+  if(arguments.length>=2) calCurProj[prefix]=proj;
+  proj=calCurProj[prefix];
+  const tasks=(TASKS||[]).filter(t=>!proj||t.p===proj);
+  const byDay={}; tasks.forEach(t=>{ if(t.due){(byDay[t.due]=byDay[t.due]||[]).push(t);} });
+  const f=calFocus[prefix], todayS=_ymd(new Date());
+  const evHtml=(t)=>'<div class="ev" style="background:'+getDesColor(t.des)+';cursor:pointer" title="'+t.n+'" onclick="openDetail('+TASKS.indexOf(t)+')">'+t.n+'</div>';
+  const mEl=document.getElementById(prefix+'-m');
+  if(mEl){
+    const y=f.getFullYear(), m=f.getMonth();
+    const startDow=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
+    const cells=Math.ceil((startDow+dim)/7)*7, gs=new Date(y,m,1-startDow);
+    let h='<div class="cal-grid"><div class="dow sun">일</div><div class="dow">월</div><div class="dow">화</div><div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow">토</div>';
+    for(let i=0;i<cells;i++){ const cd=new Date(gs); cd.setDate(gs.getDate()+i);
+      const dm=cd.getMonth()!==m?' dim':'', td=_ymd(cd)===todayS?' today':'';
+      const evs=(byDay[_ymd(cd)]||[]).map(evHtml).join('');
+      h+='<div class="cell'+dm+td+'"><div class="num">'+cd.getDate()+'</div>'+evs+'</div>';
+    }
+    mEl.innerHTML=h+'</div>';
+  }
+  const wEl=document.getElementById(prefix+'-w');
+  if(wEl){
+    const ws=new Date(f); ws.setDate(f.getDate()-f.getDay());
+    let h='<div class="week-grid">'; const dnames=['일','월','화','수','목','금','토'];
+    for(let i=0;i<7;i++){ const cd=new Date(ws); cd.setDate(ws.getDate()+i);
+      const we=(cd.getDay()===0||cd.getDay()===6)?' sun':'', td=_ymd(cd)===todayS?' today':'';
+      const evs=(byDay[_ymd(cd)]||[]).map(t=>'<div class="wev" style="background:'+getDesColor(t.des)+';cursor:pointer" onclick="openDetail('+TASKS.indexOf(t)+')"><span class="t1">'+(t.prog||'')+'</span>'+t.n+'</div>').join('');
+      h+='<div class="wcol'+we+td+'"><div class="wd">'+dnames[cd.getDay()]+'<span class="dn">'+cd.getDate()+'</span></div>'+evs+'</div>';
+    }
+    wEl.innerHTML=h+'</div>';
+  }
+  const dEl=document.getElementById(prefix+'-d');
+  if(dEl){
+    const list=(byDay[_ymd(f)]||[]);
+    dEl.innerHTML='<div class="day-list">'+(list.length?list.map(t=>'<div class="day-row" style="cursor:pointer" onclick="openDetail('+TASKS.indexOf(t)+')"><div class="day-time">마감</div><div class="day-bar" style="background:'+getDesColor(t.des)+'"></div><div class="day-c"><div class="dt">'+t.n+'</div><div class="dm">디자인 '+t.des.split(' (')[0]+' · PMD '+t.pmd+' · '+t.p+'</div></div></div>').join(''):'<div style="padding:24px;text-align:center;color:var(--ink-soft);font-size:13px">이 날짜에 마감 일정이 없습니다</div>')+'</div>';
+  }
+  updateCalTitle(prefix);
+}
+function refreshData(){
+  if(typeof renderDashboard==='function') renderDashboard();
+  if(typeof renderCalViews==='function') renderCalViews('cal', null);
+  const ap=document.querySelector('.sub-item.active');
+  if(ap && typeof renderCalViews==='function') renderCalViews('pcal', ap.dataset.pj);
+}
+function renderProjCalendar(proj){ renderCalViews('pcal', proj); }
+function movePj(btn, dir){
+  const row = btn.closest('.mp-row');
+  const list = row.parentElement;
+  const rows = [...list.querySelectorAll('.mp-row')];
+  const idx = rows.indexOf(row);
+  if(dir==='up' && idx>0){
+    list.insertBefore(row, rows[idx-1]);
+  } else if(dir==='down' && idx<rows.length-1){
+    list.insertBefore(rows[idx+1], row);
+  }
+  syncSidebarOrder();
+}
+function syncSidebarOrder(){
+  const rows = [...document.querySelectorAll('#projList .mp-row')];
+  const subNav = document.getElementById('projSubNav');
+  rows.forEach(row=>{
+    const name = row.dataset.pj;
+    const sub = subNav.querySelector(`.sub-item[data-pj="${CSS.escape(name)}"]`);
+    if(sub) subNav.appendChild(sub);
+  });
+}
+function toggleAll(btn,grp){
+  const chips=document.querySelectorAll('.chip[data-grp="'+grp+'"]');
+  const anyOn=[...chips].some(c=>!c.classList.contains('off'));
+  chips.forEach(c=>c.classList.toggle('off',anyOn));
+  btn.classList.toggle('off',anyOn);
+}
+function toggleHide(btn,name){
+  const on=btn.classList.toggle('on');
+  btn.textContent=on?'표시중':'숨김';
+  const sub=document.querySelector('.sub-item[data-pj="'+CSS.escape(name)+'"]');
+  if(sub){
+    sub.style.display=on?'':'none';
+    if(!on&&sub.classList.contains('active')){
+      const first=[...document.querySelectorAll('.sub-item')].find(t=>t.style.display!=='none');
+      if(first){selectProj(first.dataset.pj, first);}
+    }
+  } else if(on){
+    // 새 프로젝트를 사이드바에 추가
+    const nt=document.createElement('button');
+    nt.className='sub-item';nt.dataset.pj=name;nt.textContent=name;
+    nt.onclick=function(){selectProj(name,this)};
+    document.getElementById('projSubNav').appendChild(nt);
+  }
+}
+function openNew(){document.getElementById('newModal').classList.add('open');document.body.style.overflow='hidden'}
+function closeNew(){document.getElementById('newModal').classList.remove('open');document.body.style.overflow=''}
+function openDetail(i){
+  curIdx=i;const t=TASKS[i];
+  document.getElementById('dTitle').textContent=t.n;
+  document.getElementById('dProj').textContent=t.p+' · 세부보기 / 수정';
+  document.getElementById('dName').value=t.n;
+  document.getElementById('dDraft').value=t.draft;
+  document.getElementById('dDue').value=t.due;
+  setSel('dType',t.type);setSel('dDes',t.des);setSel('dPmd',t.pmd);setSel('dDest',t.dest);setSel('dUrg',t.urg);setSel('dProgSel',t.prog);
+  updateUrgIcon(document.getElementById('dUrg'),'dUrgIcon');
+  const a=document.getElementById('dAudit');
+  a.querySelectorAll('.arow')[0].querySelectorAll('span')[0].textContent='작성자 · '+t.made;
+  a.querySelectorAll('.arow')[0].querySelectorAll('span')[1].textContent='작성일 · '+t.madeAt;
+  document.getElementById('dMod').querySelectorAll('span')[0].textContent='최근 수정 · ―';
+  document.getElementById('dMod').querySelectorAll('span')[1].textContent='―';
+  document.getElementById('detailModal').classList.add('open');document.body.style.overflow='hidden';
+}
+function setSel(id,val){const s=document.getElementById(id);for(let o of s.options){if(o.value===val||o.text===val){o.selected=true;break}}}
+function updateUrgIcon(sel,iconId){
+  const cfg={
+    긴급:{icon:'!',color:'#dc2626'},
+    높음:{icon:'●',color:'#ef4444'},
+    보통:{icon:'●',color:'#22c55e'},
+    낮음:{icon:'●',color:'#cbd5e1'},
+  };
+  const el=document.getElementById(iconId);
+  if(!el)return;
+  const c=cfg[sel.value]||cfg['보통'];
+  el.textContent=c.icon;
+  el.style.color=c.color;
+  el.style.fontSize=sel.value==='긴급'?'16px':'9px';
+}
+function closeDetail(){document.getElementById('detailModal').classList.remove('open');document.body.style.overflow=''}
+async function saveDetail(){
+  if(IS_GUEST){alert('Guest는 수정할 수 없습니다.\nMicrosoft 계정으로 로그인하세요.');return;}
+  const now=new Date();
+  const d=now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0');
+  const me=CURRENT_USER?CURRENT_USER.name:'(미설정)';
+  const t=TASKS[curIdx];
+  if(!t) return;
+  t.n=document.getElementById('dName').value;
+  t.draft=document.getElementById('dDraft').value;
+  t.due=document.getElementById('dDue').value;
+  t.type=document.getElementById('dType').value;
+  t.des=document.getElementById('dDes').value;
+  t.pmd=document.getElementById('dPmd').value;
+  t.dest=document.getElementById('dDest').value;
+  t.urg=document.getElementById('dUrg').value;
+  t.prog=document.getElementById('dProgSel').value;
+  document.getElementById('dMod').querySelectorAll('span')[0].textContent='최근 수정 · '+me;
+  document.getElementById('dMod').querySelectorAll('span')[1].textContent='수정일 · '+d;
+  closeDetail();
+  const ap=document.querySelector('.sub-item.active');
+  if(ap) renderTaskList(ap.dataset.pj);
+  if(t._spId){
+    try{await updateSPTask(t._spId,t);}
+    catch(e){alert('SharePoint 저장 실패:\n'+e.message);}
+  }
+  updateCalEventForTask(t);
+  refreshData();
+}
+async function tryDelete(){
+  if(IS_GUEST){alert('Guest는 삭제할 수 없습니다.');return;}
+  const me=CURRENT_USER?CURRENT_USER.name:'(미설정)';
+  if(DELETERS.includes(me)){
+    const taskName=TASKS[curIdx]?TASKS[curIdx].n:'';
+    if(confirm('"'+taskName+'" 태스크를 삭제하시겠습니까?')){
+      const delTaskObj=TASKS[curIdx];
+      const spId=delTaskObj&&delTaskObj._spId;
+      TASKS.splice(curIdx,1);
+      closeDetail();
+      const ap=document.querySelector('.sub-item.active');
+      if(ap) renderTaskList(ap.dataset.pj);
+      refreshData();
+      if(spId){try{await deleteSPTask(spId);}catch(e){console.error('SP delete:',e);}}
+      deleteCalEventForTask(delTaskObj);
+    }
+  }else{
+    alert('삭제 권한이 없습니다.\n\n삭제 권한자: 이규리·한희주·김현정·김남순\n현재 로그인: '+me);
+  }
+}
+const progOrder={'대기':0,'진행':1,'검수':2,'완료':3};
+const urgOrder={'긴급':-1,'높음':0,'보통':1,'낮음':2};
+function sortList(key){
+  const tb=document.getElementById('taskBody');
+  const rows=[...tb.querySelectorAll('tr')];
+  rows.sort((a,b)=>{
+    if(key==='due')return a.querySelector('.due').textContent.localeCompare(b.querySelector('.due').textContent);
+    if(key==='des')return a.dataset.des.localeCompare(b.dataset.des,'ko');
+    if(key==='pmd')return a.dataset.pmd.localeCompare(b.dataset.pmd,'ko');
+    if(key==='prog')return progOrder[a.querySelector('.prog').textContent]-progOrder[b.querySelector('.prog').textContent];
+    if(key==='urg')return urgOrder[a.querySelector('.urg').textContent]-urgOrder[b.querySelector('.urg').textContent];
+  });
+  rows.forEach(r=>tb.appendChild(r));
+}
+/* Outlook 캘린더 일정 추가 (담당자별 카테고리 색상 포함) */
+var DES_CATEGORY={
+  '김희종':'파랑','태성':'초록','우일':'주황','플로우':'보라'
+};
+function toOutlookCal(idx){
+  const t=TASKS[idx];
+  const desName=t.des.replace(/ \(.*\)/,'');
+  const cat=DES_CATEGORY[desName]||'없음';
+  const subj=encodeURIComponent(`[디자인] ${t.n} · ${desName}`);
+  const start=encodeURIComponent(t.draft+'T09:00:00');
+  const end=encodeURIComponent(t.due+'T18:00:00');
+  const body=encodeURIComponent(
+    `📋 프로젝트: ${t.p}\n🎨 디자인담당: ${t.des}\n👤 PMD담당: ${t.pmd}\n⚠️ 중요도: ${t.urg}\n📌 진행상황: ${t.prog}\n🏷 카테고리 색상: ${cat}\n\n* PMD 디자인 워크스페이스 자동생성`
+  );
+  const url=`https://outlook.office.com/calendar/action/compose?subject=${subj}&startdt=${start}&enddt=${end}&body=${body}`;
+  window.open(url,'_blank');
+}
+/* 관리 액션 */
+function moveMgr(btn, dir){
+  const item=btn.closest('.mgr-item'); if(!item) return;
+  const parent=item.parentElement;
+  const heads=[...parent.children].filter(el=>el.classList.contains('mgr-item'));
+  const idx=heads.indexOf(item); const tgt=idx+dir;
+  if(tgt<0||tgt>=heads.length) return;
+  const other=heads[tgt];
+  const endOf=(h)=>(h.nextElementSibling&&h.nextElementSibling.classList.contains('sub-items-wrap'))?h.nextElementSibling:h;
+  if(dir<0){ const ie=endOf(item); parent.insertBefore(item, other); if(ie!==item) parent.insertBefore(ie, other); }
+  else { const oe=endOf(other); parent.insertBefore(other, item); if(oe!==other) parent.insertBefore(oe, item); }
+}
+function initMgrReorder(){
+  document.querySelectorAll('.mgr-actions').forEach(act=>{
+    if(act.querySelector('.mgr-move')) return;
+    if(!act.querySelector('.mgr-icon-btn.del')) return;
+    const up=document.createElement('button'); up.className='mgr-icon-btn mgr-move'; up.title='위로'; up.textContent='▲'; up.onclick=function(){moveMgr(this,-1);};
+    const dn=document.createElement('button'); dn.className='mgr-icon-btn mgr-move'; dn.title='아래로'; dn.textContent='▼'; dn.onclick=function(){moveMgr(this,1);};
+    act.insertBefore(dn, act.firstChild); act.insertBefore(up, act.firstChild);
+  });
+}
+function mgrEdit(section, item){
+  const v = prompt(`[${section}] "${item}" 수정\n새 이름을 입력하세요:`, item);
+  if(v && v.trim() && v!==item) alert(`"${item}" → "${v.trim()}" 으로 수정되었습니다.\n(실제 연동 시 DB에 자동 반영)`);
+}
+function mgrDel(item){
+  if(confirm(`"${item}"을(를) 삭제하시겠습니까?\n관련 태스크의 담당자 정보도 확인이 필요합니다.`)){
+    alert(`"${item}" 삭제 완료\n(실제 연동 시 DB에서 제거)`);
+  }
+}
+function mgrAdd(section){
+  const v = prompt(`[${section}] 새 항목 이름:`);
+  if(v && v.trim()) alert(`"${v.trim()}" 추가 완료\n(실제 연동 시 DB에 저장)`);
+}
+// 페이지 로드 시 기본 프로젝트 렌더링
+window.addEventListener('DOMContentLoaded',async()=>{
+  renderTaskList('일잘러2026');refreshData();initMgrReorder();
+  renderProjCalendar('일잘러2026');
+  loadUser();
+  await initMSAL(); // Microsoft 로그인 → 자동으로 SharePoint 데이터 로드
+});
+</script>
+<!-- 세부 보기 / 수정 모달 -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div class="mhead">
+      <div><h3 id="dTitle">메인 키비주얼</h3><p class="mhint" id="dProj">일잘러2026 · 세부보기 / 수정</p></div>
+      <button class="del-btn">삭제</button>
+    </div>
+    <div class="field"><label>내용</label><input type="text" id="dName"></div>
+    <div class="field-grid">
+      <div class="field"><label>1차시안</label><input type="date" id="dDraft"></div>
+      <div class="field"><label>마감일</label><input type="date" id="dDue"></div>
+    </div>
+    <div class="field"><label>디자인종류</label>
+      <select id="dType">
+        <option>로고/키비주얼</option>
+        <optgroup label="인쇄물"><option>인쇄물 · 브로슈어</option><option>인쇄물 · 5단광고</option><option>인쇄물 · 포스터</option><option>인쇄물 · 초청장</option><option>인쇄물 · 기타</option></optgroup>
+        <optgroup label="사인물"><option>사인물 · 현수막</option><option>사인물 · 배너</option><option>사인물 · 기타</option></optgroup>
+        <optgroup label="온라인홍보물"><option>온라인 · 웹배너</option><option>온라인 · 카드뉴스</option><option>온라인 · 기타</option></optgroup>
+        <option>광고물</option><option>기타</option>
+      </select>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>디자인담당</label><select id="dDes"><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option></select></div>
+      <div class="field"><label>PMD담당</label><select id="dPmd"><option>이규리</option><option>한희주</option><option>김현정</option><option>김예지</option><option>김다예</option><option>이소현</option><option>최유정</option><option>박재환</option><option>김남순</option></select></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>제출처</label><select id="dDest"><option>—</option><option>PMD내부</option><option>발주처</option><option>광고매체</option><option>협력사 전달</option><option>기타</option></select></div>
+      <div class="field"><label>중요도</label>
+        <div class="urg-wrap">
+          <span class="urg-icon" id="dUrgIcon" style="color:#94a3b8">●</span>
+          <select id="dUrg" onchange="updateUrgIcon(this,'dUrgIcon')"><option value="긴급">긴급</option><option value="높음">높음</option><option value="보통" selected>보통</option><option value="낮음">낮음</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>진행상황</label><select id="dProgSel"><option>대기</option><option>진행</option><option>검수</option><option>완료</option></select></div>
+    <div class="field"><label>시안 링크 <span class="opt">OneDrive</span></label><input type="text" id="dLink" placeholder="OneDrive 파일 링크"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeDetail()">닫기</button>
+      
+      <button class="btn btn-save">수정 저장</button>
+    </div>
+    <div class="audit" id="dAudit">
+      <div class="arow"><span>작성자 · —</span><span>작성일 · —</span></div>
+      <div class="arow mod" id="dMod"><span>최근 수정 · ―</span><span>―</span></div>
+    </div>
+  </div>
+</div>
+<!-- 새 태스크 모달 -->
+<div class="modal-bg" id="newModal">
+  <div class="modal">
+    <h3>새 태스크</h3>
+    <p class="mhint">필수 항목만 채우면 바로 등록됩니다</p>
+    <div class="req-section">
+      <div class="sec-label">필수</div>
+      <div class="field"><label>내용 <span class="req">*</span></label><input type="text" placeholder="예: 메인 키비주얼 디자인"></div>
+      <div class="field-grid">
+        <div class="field"><label>1차시안 <span class="req">*</span></label><input type="date"></div>
+        <div class="field"><label>마감일 <span class="req">*</span></label><input type="date"></div>
+      </div>
+      <div class="field-grid" style="margin-bottom:0">
+        <div class="field" style="margin-bottom:0"><label>프로젝트 <span class="req">*</span></label><select><option>일잘러2026</option><option>1인가구2026</option><option>오티즘2026</option><option>제안서</option><option>PMD</option><option>기타</option></select></div>
+        <div class="field" style="margin-bottom:0"><label>디자인담당 <span class="req">*</span></label><select><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option></select></div>
+      </div>
+    </div>
+    <div class="opt-label">선택</div>
+    <div class="field"><label>PMD담당</label><select><option>—</option><option>이규리</option><option>한희주</option><option>김현정</option><option>김예지</option><option>김다예</option><option>이소현</option><option>최유정</option><option>박재환</option><option>김남순</option></select></div>
+    <div class="field"><label>디자인종류</label>
+      <select><option>—</option><option>로고/키비주얼</option>
+        <optgroup label="인쇄물"><option>인쇄물 · 브로슈어</option><option>인쇄물 · 초청장</option><option>인쇄물 · 기타</option></optgroup>
+        <optgroup label="사인물"><option>사인물 · 현수막</option><option>사인물 · 배너</option><option>사인물 · 기타</option></optgroup>
+        <optgroup label="온라인홍보물"><option>온라인 · 웹배너</option><option>온라인 · 카드뉴스</option><option>온라인 · 기타</option></optgroup>
+        <option>광고물</option><option>기타</option>
+      </select>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>제출처</label><select><option>—</option><option>PMD내부</option><option>발주처</option><option>광고매체</option><option>협력사 전달</option><option>기타</option></select></div>
+      <div class="field"><label>중요도</label>
+        <div class="urg-wrap">
+          <span class="urg-icon" id="newUrgIcon" style="color:#94a3b8">●</span>
+          <select onchange="updateUrgIcon(this,'newUrgIcon')"><option value="긴급">긴급</option><option value="높음">높음</option><option value="보통" selected>보통</option><option value="낮음">낮음</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>시안 링크 <span class="opt">선택 · OneDrive</span></label><input type="text" placeholder="OneDrive 파일 링크 붙여넣기"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeNew()">취소</button>
+      <button class="btn btn-save" onclick="registerNewTask()">등록</button>
+    </div>
+    <div class="audit"><div class="arow" id="newAuditRow"><span id="newAuditMaker">작성자 · (로그인 필요)</span><span id="newAuditDate"></span></div></div>
+  </div>
+</div>
+</body>
+</html>
