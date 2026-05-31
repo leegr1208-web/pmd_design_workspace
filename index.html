@@ -664,7 +664,7 @@ td .due.soon{color:var(--danger)}
       </section>
       <!-- ===== 관리 ===== -->
       <section class="view" id="mgr">
-        <div class="view-head"><div><h2>관리</h2><p>담당자 · 제출처 · 디자인종류 · 권한 · Outlook 자동화</p></div></div>
+        <div class="view-head" style="display:flex;justify-content:space-between;align-items:center"><div><h2>관리</h2><p>담당자 · 제출처 · 디자인종류 · 권한 · Outlook 자동화</p></div><button class="btn btn-save" onclick="saveMgrLayout()" style="flex:0 0 auto">💾 순서·삭제 저장</button></div>
         <!-- Outlook 자동화 안내 -->
         <div class="automate-card">
           <h4><img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" style="width:16px;height:16px"> Outlook [PMD] 디자인캘린더 자동 연동 <span style="font-size:11px;color:#1a7f4b;background:#e7f6ee;padding:2px 8px;border-radius:5px;margin-left:4px">사용 중</span></h4>
@@ -1588,6 +1588,43 @@ function initMgrReorder(){
     act.insertBefore(dn, act.firstChild); act.insertBefore(up, act.firstChild);
   });
 }
+function _mgrItemName(it){ return [...it.childNodes].filter(function(n){return n.nodeType===3;}).map(function(n){return n.textContent;}).join('').trim(); }
+function saveMgrLayout(){
+  var data={};
+  document.querySelectorAll('.mgr-card').forEach(function(card){
+    var h=card.querySelector('h3'); if(!h) return;
+    var arr=[...card.querySelectorAll('.mgr-item')].map(_mgrItemName).filter(Boolean);
+    if(arr.length) data['m:'+h.textContent.trim()]=arr;
+  });
+  data.projects=[...document.querySelectorAll('#projList .mp-row')].map(function(r){return r.dataset.pj;});
+  try{localStorage.setItem('pmd_mgr_layout', JSON.stringify(data)); alert('관리 화면의 순서·삭제 설정을 저장했습니다. 다음에 열어도 유지됩니다.');}catch(e){alert('저장 실패: '+e.message);}
+}
+function restoreMgrLayout(){
+  var raw; try{raw=localStorage.getItem('pmd_mgr_layout');}catch(e){return;} if(!raw) return;
+  var data; try{data=JSON.parse(raw);}catch(e){return;}
+  document.querySelectorAll('.mgr-card').forEach(function(card){
+    var h=card.querySelector('h3'); if(!h) return;
+    var saved=data['m:'+h.textContent.trim()]; if(!saved) return;
+    var addBtn=card.querySelector('.mgr-add');
+    var map={}; [...card.querySelectorAll('.mgr-item')].forEach(function(it){map[_mgrItemName(it)]=it;});
+    saved.forEach(function(nm){
+      var it=map[nm]; if(!it) return;
+      var end=(it.nextElementSibling&&it.nextElementSibling.classList.contains('sub-items-wrap'))?it.nextElementSibling:it;
+      if(addBtn){ card.insertBefore(it,addBtn); if(end!==it) card.insertBefore(end,addBtn); }
+      else { card.appendChild(it); if(end!==it) card.appendChild(end); }
+    });
+  });
+  if(data.projects){
+    var list=document.getElementById('projList');
+    if(list){
+      var rows={}; [...list.querySelectorAll('.mp-row')].forEach(function(r){rows[r.dataset.pj]=r;});
+      var keep={};
+      data.projects.forEach(function(nm){ if(rows[nm]){ list.appendChild(rows[nm]); keep[nm]=1; } });
+      [...list.querySelectorAll('.mp-row')].forEach(function(r){ if(!keep[r.dataset.pj]){ r.remove(); document.querySelectorAll('.sub-item').forEach(function(s){if(s.dataset.pj===r.dataset.pj)s.remove();}); } });
+      if(typeof syncSidebarOrder==='function') syncSidebarOrder();
+    }
+  }
+}
 function initProjDelete(){
   document.querySelectorAll('#projList .mp-row').forEach(function(row){
     if(row.querySelector('.proj-del')) return;
@@ -1619,7 +1656,7 @@ function mgrAdd(section){
 }
 // 페이지 로드 시 기본 프로젝트 렌더링
 window.addEventListener('DOMContentLoaded',async()=>{
-  renderTaskList('일잘러2026');refreshData();initMgrReorder();initProjDelete();
+  renderTaskList('일잘러2026');refreshData();initMgrReorder();initProjDelete();restoreMgrLayout();
   renderProjCalendar('일잘러2026');
   loadUser();
   await initMSAL(); // Microsoft 로그인 → 자동으로 SharePoint 데이터 로드
