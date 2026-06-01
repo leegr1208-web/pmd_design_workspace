@@ -513,6 +513,16 @@ td .due.soon{color:var(--danger)}
           <div><h2>일정관리</h2><p>전체 담당자 표시</p></div>
         </div>
         <div class="cal-legend">
+          <span class="legend-label">프로젝트</span>
+          <button class="allbtn" onclick="toggleAll(this,'cal-proj')">전체</button>
+          <span class="chip" data-grp="cal-proj" onclick="this.classList.toggle('off')"><span class="sw" style="background:#7baaf7"></span>일잘러2026</span>
+          <span class="chip" data-grp="cal-proj" onclick="this.classList.toggle('off')"><span class="sw" style="background:#45c4a0"></span>1인가구2026</span>
+          <span class="chip" data-grp="cal-proj" onclick="this.classList.toggle('off')"><span class="sw" style="background:#e8a030"></span>오티즘2026</span>
+          <span class="chip" data-grp="cal-proj" onclick="this.classList.toggle('off')"><span class="sw" style="background:#f07898"></span>제안서</span>
+          <span class="chip" data-grp="cal-proj" onclick="this.classList.toggle('off')"><span class="sw" style="background:#b08cf5"></span>PMD</span>
+          <span class="chip" data-grp="cal-proj" onclick="this.classList.toggle('off')"><span class="sw" style="background:#8ca8be"></span>기타</span>
+        </div>
+        <div class="cal-legend">
           <span class="legend-label">디자인</span>
           <button class="allbtn" onclick="toggleAll(this,'cal-des')">전체</button>
           <span class="chip" data-grp="cal-des" onclick="this.classList.toggle('off')"><span class="sw" style="background:var(--c-kim)"></span>김희종</span>
@@ -1347,8 +1357,9 @@ function _chipName(c){ return [...c.childNodes].filter(function(n){return n.node
 function _setChipCount(c,n){ var b=c.querySelector('.chip-count'); if(!b){ b=document.createElement('span'); b.className='chip-count'; c.appendChild(b); } b.textContent=n; }
 function updateChipCounts(){
   var all=(TASKS||[]);
-  var desA={},pmdA={};
-  all.forEach(function(t){ var dn=(t.des||'').split(' (')[0]; if(dn)desA[dn]=(desA[dn]||0)+1; if(t.pmd)pmdA[t.pmd]=(pmdA[t.pmd]||0)+1; });
+  var desA={},pmdA={},projA={};
+  all.forEach(function(t){ var dn=(t.des||'').split(' (')[0]; if(dn)desA[dn]=(desA[dn]||0)+1; if(t.pmd)pmdA[t.pmd]=(pmdA[t.pmd]||0)+1; if(t.p)projA[t.p]=(projA[t.p]||0)+1; });
+  document.querySelectorAll('.chip[data-grp="cal-proj"]').forEach(function(c){ _setChipCount(c,projA[_chipName(c)]||0); });
   document.querySelectorAll('.chip[data-grp="cal-des"]').forEach(function(c){ _setChipCount(c,desA[_chipName(c)]||0); });
   document.querySelectorAll('.chip[data-grp="cal-pmd"]').forEach(function(c){ _setChipCount(c,pmdA[_chipName(c)]||0); });
   var ap=document.querySelector('.sub-item.active'); var proj=ap?ap.dataset.pj:null;
@@ -1479,7 +1490,8 @@ function renderCalViews(prefix, proj){
   const cg=prefix==='cal'?'cal':'pj';
   const offDes=new Set([...document.querySelectorAll('.chip[data-grp="'+cg+'-des"].off')].map(c=>_chipName(c)));
   const offPmd=new Set([...document.querySelectorAll('.chip[data-grp="'+cg+'-pmd"].off')].map(c=>_chipName(c)));
-  const tasks=(TASKS||[]).filter(t=>(!proj||t.p===proj)&&!offDes.has((t.des||'').split(' (')[0])&&!offPmd.has(t.pmd));
+  const offProj=new Set([...document.querySelectorAll('.chip[data-grp="'+cg+'-proj"].off')].map(c=>_chipName(c)));
+  const tasks=(TASKS||[]).filter(t=>(!proj||t.p===proj)&&!offProj.has(t.p)&&!offDes.has((t.des||'').split(' (')[0])&&!offPmd.has(t.pmd));
   const byDay={}; tasks.forEach(t=>{ if(t.due){(byDay[t.due]=byDay[t.due]||[]).push(t);} });
   const f=calFocus[prefix], todayS=_ymd(new Date());
   const evHtml=(t)=>'<div class="ev" style="background:'+getDesColor(t.des)+';cursor:pointer" title="'+t.n+'" onclick="openDetail('+TASKS.indexOf(t)+')">'+t.n+'</div>';
