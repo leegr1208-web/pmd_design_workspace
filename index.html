@@ -1046,7 +1046,7 @@ async function initSPIds(){
 var SPF={proj:'_xd504__xb85c__xc81d__xd2b8_',type:'_xb514__xc790__xc778__xc885__xb9',draft:'_x0031__xcc28__xc2dc__xc548_',due:'_xb9c8__xac10__xc77c_',des:'_xb514__xc790__xc778__xb2f4__xb2',pmd:'PMD_xb2f4__xb2f9_',dest:'_xc81c__xcd9c__xcc98_',urg:'_xc911__xc694__xb3c4_',prog:'_xc9c4__xd589__xc0c1__xd669_',onedrive:'OneDrive_xb9c1__xd06c_'};
 function spToTask(item){
   const f=item.fields||{}; const g=v=>(v||'').split('T')[0];
-  return {_spId:item.id,n:f.Title||'',p:f[SPF.proj]||'',draft:g(f[SPF.draft]||''),due:g(f[SPF.due]||''),type:f[SPF.type]||'',des:f[SPF.des]||'',pmd:f[SPF.pmd]||'',dest:f[SPF.dest]||'',urg:f[SPF.urg]||'보통',prog:f[SPF.prog]||'대기',made:(typeof f.Author==='string'?f.Author:''),madeAt:g(f.Created||'')};
+  return {_spId:item.id,n:f.Title||'',p:f[SPF.proj]||'',draft:g(f[SPF.draft]||''),due:g(f[SPF.due]||''),type:f[SPF.type]||'',des:f[SPF.des]||'',pmd:f[SPF.pmd]||'',dest:f[SPF.dest]||'',urg:f[SPF.urg]||'보통',prog:f[SPF.prog]||'대기',made:(item.createdBy&&item.createdBy.user&&item.createdBy.user.displayName)||'',madeAt:g(item.createdDateTime||'')};
 }
 function taskToFields(t){
   const f={'Title':t.n}; f[SPF.prog]=t.prog;
@@ -1593,8 +1593,8 @@ function openDetail(i){
   setSel('dType',t.type);setSel('dDes',t.des);setSel('dPmd',t.pmd);setSel('dDest',t.dest);setSel('dUrg',t.urg);setSel('dProgSel',t.prog);
   updateUrgIcon(document.getElementById('dUrg'),'dUrgIcon');
   const a=document.getElementById('dAudit');
-  a.querySelectorAll('.arow')[0].querySelectorAll('span')[0].textContent='작성자 · '+t.made;
-  a.querySelectorAll('.arow')[0].querySelectorAll('span')[1].textContent='작성일 · '+t.madeAt;
+  a.querySelectorAll('.arow')[0].querySelectorAll('span')[0].textContent='작성자 · '+(t.made||'—');
+  a.querySelectorAll('.arow')[0].querySelectorAll('span')[1].textContent='작성일 · '+(t.madeAt||'—');
   document.getElementById('dMod').querySelectorAll('span')[0].textContent='최근 수정 · ―';
   document.getElementById('dMod').querySelectorAll('span')[1].textContent='―';
   document.getElementById('detailModal').classList.add('open');document.body.style.overflow='hidden';
