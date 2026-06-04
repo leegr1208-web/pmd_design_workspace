@@ -1186,7 +1186,12 @@ function removeAdmin(name){if(DELETERS.length<=1){alert('관리자는 최소 1�
 function renderAdminList(){
   var wrap=document.getElementById('adminList');if(!wrap)return;
   wrap.innerHTML=DELETERS.map(function(n){
-    return '<div class="mgr-item" style="padding:8px 12px"><span class="perm-badge" style="background:#fbe9e7;color:var(--danger)">관리자</span><span style="margin-left:8px;font-weight:600">'+n+'</span><div class="mgr-actions" style="margin-left:auto"><button class="mgr-icon-btn del" onclick="removeAdmin(''+n+'')" title="삭제">🗑</button></div></div>';
+    return '<div class="mgr-item" style="padding:8px 12px">'
+      +'<span class="perm-badge" style="background:#fbe9e7;color:var(--danger)">관리자</span>'
+      +'<span style="margin-left:8px;font-weight:600">'+n+'</span>'
+      +'<div class="mgr-actions" style="margin-left:auto">'
+      +'<button class="mgr-icon-btn del" data-admin="'+n+'" onclick="removeAdmin(this.dataset.admin)" title="삭제">🗑</button>'
+      +'</div></div>';
   }).join('');
 }
 function addAdminPrompt(){
