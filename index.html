@@ -764,9 +764,14 @@ td .due.soon{color:var(--danger)}
           <!-- 권한 -->
           <div class="mgr-card">
             <h3>권한</h3><div class="d">작성·수정 / 삭제 권한자 지정</div>
-            <div class="mgr-item">작성 · 수정<span class="role-badge" style="margin-left:auto">전 직원</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('권한','작성·수정')" title="수정">✏</button></div></div>
-            <div class="mgr-item">삭제 확인<span class="perm-badge" style="margin-left:auto">이규리·한희주·김현정·김남순</span><div class="mgr-actions"><button class="mgr-icon-btn" onclick="mgrEdit('권한','삭제확인')" title="수정">✏</button></div></div>
-            <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;line-height:1.6;padding:10px;background:var(--bg);border-radius:8px">누구나 태스크를 만들고 수정할 수 있으나, 삭제는 관리자 확인이 필요합니다.</div>
+            <div class="mgr-item" style="background:var(--bg);border-radius:8px;padding:10px 14px;margin-bottom:8px">
+              <span style="font-weight:600;font-size:13px">작성 · 수정</span>
+              <span class="role-badge" style="margin-left:auto">전 직원 자동 허용</span>
+            </div>
+            <div style="font-weight:600;font-size:12px;color:var(--ink-soft);margin:14px 0 8px 2px">🔐 삭제 권한 관리자</div>
+            <div id="adminList"></div>
+            <button class="mgr-add" onclick="addAdminPrompt()" style="margin-top:8px">＋ 관리자 추가</button>
+            <div style="font-size:11.5px;color:var(--ink-soft);margin-top:12px;line-height:1.6;padding:10px;background:var(--bg);border-radius:8px">누구나 태스크를 만들고 수정할 수 있으나, 삭제는 위 관리자만 가능합니다.</div>
           </div>
           <!-- 디자인종류 -->
           <div class="mgr-card">
@@ -1174,7 +1179,23 @@ async function registerNewTask(){
 var TASKS=[];
 /* 프로젝트별 주간 캘린더 이벤트 (May 18-24 기준주) */
 var PROJ_EVENTS={};
-var DELETERS=['이규리','한희주','김현정','김남순'];
+var DELETERS=(function(){try{var s=localStorage.getItem('pmd_admins');if(s){var a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a;}}catch(e){}return ['이규리','한희주','김현정','김남순'];})();
+function saveAdmins(){try{localStorage.setItem('pmd_admins',JSON.stringify(DELETERS));}catch(e){}}
+function addAdmin(name){if(!name||DELETERS.includes(name))return;DELETERS.push(name);saveAdmins();renderAdminList();}
+function removeAdmin(name){if(DELETERS.length<=1){alert('관리자는 최소 1명 이상이어야 합니다.');return;}DELETERS=DELETERS.filter(function(n){return n!==name;});saveAdmins();renderAdminList();}
+function renderAdminList(){
+  var wrap=document.getElementById('adminList');if(!wrap)return;
+  wrap.innerHTML=DELETERS.map(function(n){
+    return '<div class="mgr-item" style="padding:8px 12px"><span class="perm-badge" style="background:#fbe9e7;color:var(--danger)">관리자</span><span style="margin-left:8px;font-weight:600">'+n+'</span><div class="mgr-actions" style="margin-left:auto"><button class="mgr-icon-btn del" onclick="removeAdmin(''+n+'')" title="삭제">🗑</button></div></div>';
+  }).join('');
+}
+function addAdminPrompt(){
+  var v=prompt('추가할 관리자 이름을 입력하세요:');
+  if(!v||!v.trim())return;
+  var name=v.trim();
+  if(DELETERS.includes(name)){alert('"'+name+'"은(는) 이미 관리자입니다.');return;}
+  addAdmin(name);
+}
 let curIdx=0;
 /* 현재 사용자 */
 let _selUser=null; // 모달에서 임시 선택
@@ -1660,7 +1681,7 @@ async function tryDelete(){
       deleteCalEventForTask(delTaskObj);
     }
   }else{
-    alert('삭제 권한이 없습니다.\n\n삭제 권한자: 이규리·한희주·김현정·김남순\n현재 로그인: '+me);
+    alert('삭제 권한이 없습니다.\n\n삭제 권한자: '+DELETERS.join('·')+'\n현재 로그인: '+me);
   }
 }
 const progOrder={'대기':0,'진행':1,'검수':2,'완료':3};
@@ -1830,7 +1851,7 @@ function mgrAdd(section){
 }
 // 페이지 로드 시 기본 프로젝트 렌더링
 window.addEventListener('DOMContentLoaded',async()=>{
-  renderTaskList('일잘러2026');refreshData();initMgrReorder();applyMgrOps();initProjDelete();restoreMgrLayout();
+  renderTaskList('일잘러2026');refreshData();initMgrReorder();applyMgrOps();initProjDelete();restoreMgrLayout();renderAdminList();
   renderProjCalendar('일잘러2026');
   loadUser();
   await initMSAL(); // Microsoft 로그인 → 자동으로 SharePoint 데이터 로드
