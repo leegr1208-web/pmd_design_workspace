@@ -875,7 +875,7 @@ td .due.soon{color:var(--danger)}
       </select>
     </div>
     <div class="field-grid">
-      <div class="field"><label>디자인담당</label><select id="dDes"><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option></select></div>
+      <div class="field"><label>디자인담당</label><select id="dDes"><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option><option>기타</option></select></div>
       <div class="field"><label>PMD담당</label><select id="dPmd"><option>이규리</option><option>한희주</option><option>김현정</option><option>김예지</option><option>김다예</option><option>이소현</option><option>최유정</option><option>박재환</option><option>김남순</option></select></div>
     </div>
     <div class="field-grid">
@@ -919,7 +919,7 @@ td .due.soon{color:var(--danger)}
       </div>
       <div class="field-grid" style="margin-bottom:0">
         <div class="field" style="margin-bottom:0"><label>프로젝트 <span class="req">*</span></label><select><option>일잘러2026</option><option>1인가구2026</option><option>오티즘2026</option><option>제안서</option><option>PMD</option><option>기타</option></select></div>
-        <div class="field" style="margin-bottom:0"><label>디자인담당 <span class="req">*</span></label><select><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option></select></div>
+        <div class="field" style="margin-bottom:0"><label>디자인담당 <span class="req">*</span></label><select><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option><option>기타</option></select></div>
       </div>
     </div>
     <div class="opt-label">선택 (나중에 채워도 됨)</div>
@@ -1802,6 +1802,15 @@ function _addMgr(section,name){
   act.appendChild(eb); act.appendChild(db);
   var addBtn=card.querySelector('.mgr-add'); if(addBtn) card.insertBefore(it,addBtn); else card.appendChild(it);
   if(typeof initMgrReorder==='function') initMgrReorder();
+  if(section==='디자인담당'){
+    document.querySelectorAll('select').forEach(function(sel){
+      var isDesSelect=sel.id==='dDes'||(sel.options.length>0&&sel.options[0].text==='김희종 (PMD)');
+      if(!isDesSelect) return;
+      var exists=false;
+      for(var i=0;i<sel.options.length;i++){ if(sel.options[i].text===name||sel.options[i].text.split(' (')[0]===name) exists=true; }
+      if(!exists){ var opt=document.createElement('option'); opt.text=name; sel.appendChild(opt); }
+    });
+  }
 }
 function _mgrOps(){ try{return JSON.parse(localStorage.getItem('pmd_mgr_ops')||'[]');}catch(e){return [];} }
 function _pushOp(op){ var a=_mgrOps(); a.push(op); try{localStorage.setItem('pmd_mgr_ops',JSON.stringify(a));}catch(e){} }
@@ -1849,7 +1858,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
       </select>
     </div>
     <div class="field-grid">
-      <div class="field"><label>디자인담당</label><select id="dDes"><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option></select></div>
+      <div class="field"><label>디자인담당</label><select id="dDes"><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option><option>기타</option></select></div>
       <div class="field"><label>PMD담당</label><select id="dPmd"><option>이규리</option><option>한희주</option><option>김현정</option><option>김예지</option><option>김다예</option><option>이소현</option><option>최유정</option><option>박재환</option><option>김남순</option></select></div>
     </div>
     <div class="field-grid">
@@ -1888,7 +1897,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
       </div>
       <div class="field-grid" style="margin-bottom:0">
         <div class="field" style="margin-bottom:0"><label>프로젝트 <span class="req">*</span></label><select><option>일잘러2026</option><option>1인가구2026</option><option>오티즘2026</option><option>제안서</option><option>PMD</option><option>기타</option></select></div>
-        <div class="field" style="margin-bottom:0"><label>디자인담당 <span class="req">*</span></label><select><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option></select></div>
+        <div class="field" style="margin-bottom:0"><label>디자인담당 <span class="req">*</span></label><select><option>김희종 (PMD)</option><option>태성 (인쇄물)</option><option>우일 (인쇄물)</option><option>플로우 (종합)</option><option>기타</option></select></div>
       </div>
     </div>
     <div class="opt-label">선택</div>
